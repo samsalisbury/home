@@ -1,1 +1,32 @@
-/Users/sam/src/github.com/samsalisbury/home/.gitconfig
+[user]
+	email = samsalisbury@gmail.com
+	name = Sam Salisbury
+	signingkey = 9A84616C
+[credential]
+	helper = osxkeychain
+[push]
+	default = simple
+[core]
+	editor = nvim
+[alias]
+	slog = log --show-signature
+
+# GPG
+[commit]
+	gpgsign = false
+[gpg]
+	program = gpg
+
+# Merge and diff
+[merge]
+	keepBackup = false
+	tool = opendiff
+[diff]
+	tool = opendiff
+
+[log]
+	showSignature = false
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+[rerere]
+	enabled = true
