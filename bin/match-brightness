@@ -1,1 +1,17 @@
-/Users/sam/src/github.com/samsalisbury/home/bin/match-brightness
+#!/usr/bin/env bash
+
+# Match-brightness: make external monitor brightness match (roughly)
+# that of the builtin MacBook panel.
+#
+# Uses ddcctl from https://github.com/kfix/ddcctl
+
+# B is laptop panel brightness.
+B=$(ioreg -l -w0 -c AppleBacklightDisplay | \
+	grep ApplePanelRawBrightness | cut -d'=' -f2)
+
+# T is target brightness of external panel.
+T=$((B/10))
+
+echo "Laptop panel at $B; setting monitor to $T."
+
+ddcctl -d 1 -b $T

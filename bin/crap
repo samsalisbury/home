@@ -1,1 +1,14 @@
-/Users/sam/src/github.com/samsalisbury/home/bin/crap
+#!/usr/bin/env bash
+
+# Crap - make a directory for doing random work in outside of any project,
+#        and print its path.
+#
+# Typical usage: 'cd $(crap)'
+
+set -euo pipefail
+
+DATE="$(date +%Y-%m-%d)"
+BASEDIR="$HOME/.crap"
+DIR="$BASEDIR/crap-$DATE"
+mkdir -p "$DIR"
+echo "$DIR"
