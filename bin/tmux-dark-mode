@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+COLOR="#ffffff"
+
+CURRENT_STYLE="$(defaults read -g AppleInterfaceStyle 2>/dev/null)"
+
+if [ "$CURRENT_STYLE" = Dark ]; then
+  COLOR="#171717"
+fi
+
+for PANE in $(tmux list-panes -a -F '#{pane_id}'); do
+	tmux select-pane -t "$PANE" -P "bg=$COLOR"
+done
