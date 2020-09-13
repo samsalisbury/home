@@ -1,15 +1,39 @@
 #!/usr/bin/env bash
 
+ARG="$1"
+
 set -euo pipefail
 
-COLOR="#ffffff"
+vlog() { [ "$VERBOSE" = YES ] || return 0; echo "==> $*" 1>&2; }
 
-CURRENT_STYLE="$(defaults read -g AppleInterfaceStyle 2>/dev/null)"
-
-if [ "$CURRENT_STYLE" = Dark ]; then
-  COLOR="#171717"
+VERBOSE=NO
+if [ "$ARG" = "-v" ]; then
+	VERBOSE=YES
+	vlog "Verbose logging on."
 fi
 
-for PANE in $(tmux list-panes -a -F '#{pane_id}'); do
-	tmux select-pane -t "$PANE" -P "bg=$COLOR"
+WANT_BG_COLOR="#ffffff"
+
+
+# This command fails for Light mode, and prints "Dark" for dark mode.
+GET_SYSTEM_STYLE="defaults read -g AppleInterfaceStyle"
+if [ "$VERBOSE" = YES ]; then
+	vlog "Running $GET_SYSTEM_STYLE"
+	SYSTEM_STYLE="$($GET_SYSTEM_STYLE)" || SYSTEM_STYLE=Light
+else
+	SYSTEM_STYLE="$($GET_SYSTEM_STYLE 2>/dev/null)" || SYSTEM_STYLE=Light
+fi
+
+vlog "SYSTEM_STYLE=$SYSTEM_STYLE"
+
+if [ "$SYSTEM_STYLE" = Dark ]; then
+  WANT_BG_COLOR="#171717"
+fi
+vlog "WANT_BG_COLOR=$WANT_BG_COLOR"
+
+PANES="$(tmux list-panes -a -F '#{pane_id}')"
+vlog "PANES=$PANES"
+
+for PANE in $PANES; do
+	tmux select-pane -t "$PANE" -P "bg=$WANT_BG_COLOR"
 done
