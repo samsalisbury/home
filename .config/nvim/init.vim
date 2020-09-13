@@ -49,8 +49,9 @@ let g:gruvbox_contrast_dark = 'hard'
 "" actual cursor.
 augroup FixHighlighting
 	autocmd!
-	autocmd ColorScheme github highlight MatchParen cterm=bold ctermbg=lightyellow ctermfg=darkgrey guifg=#032f62 guibg=#bde0fb
-	autocmd ColorScheme molokai highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow guifg=#bde0fb guibg=#032f62
+	autocmd ColorScheme github highlight MatchParen cterm=bold ctermbg=lightyellow ctermfg=darkgrey
+	autocmd ColorScheme github highlight StatusLine cterm=bold ctermbg=white ctermfg=darkgrey
+	autocmd ColorScheme molokai highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow
 augroup END
 
 """ Dark Mode handling
