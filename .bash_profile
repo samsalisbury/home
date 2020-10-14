@@ -35,6 +35,9 @@ shopt -s cmdhist
 ( tmux-dark-mode & ) &> /dev/null
 ( { match-brightness > /dev/null 2>&1 || true; } & ) &> /dev/null
 
+alias l='ls -lah'
+alias t='tree'
+
 # git shortcuts
 ga() { if [ -z "$*" ]; then git add .; else git add "$@"; fi; }
 alias g='git'
