@@ -11,7 +11,7 @@ export GOPATH="$HOME"
 # Don't attempt host completion. (This allows completion of filenames
 # beginning with @ which unfortunately we have to use sometimes.)
 shopt -u hostcomplete
-complete -r hostname
+#complete -r hostname
 
 alias vim=nvim
 export EDITOR=nvim
@@ -35,7 +35,7 @@ shopt -s cmdhist
 ( tmux-dark-mode & ) &> /dev/null
 ( { match-brightness > /dev/null 2>&1 || true; } & ) &> /dev/null
 
-alias l='ls -lah'
+alias l='ls -lahG'
 alias t='tree'
 
 # git shortcuts
@@ -74,3 +74,9 @@ if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
 	echo "==> Git configured for home directory; Ctrl+D to go back to previous shell."
 fi
 
+
+export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="/usr/local/opt/ruby/bin:$PATH"
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
+export PATH="/usr/local/opt/postgresql@12/bin:$PATH"

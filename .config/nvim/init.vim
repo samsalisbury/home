@@ -30,6 +30,9 @@ call plug#begin()
 	" Golang specific
 	Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', 'do': ':GoUpdateBinaries', }
 
+	" Rust
+	Plug 'rust-lang/rust.vim'
+
 	" Docker
 	Plug 'ekalinin/dockerfile.vim'
 	Plug 'zchee/deoplete-docker'
