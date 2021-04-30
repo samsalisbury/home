@@ -10,25 +10,29 @@
 	editor = nvim
 [alias]
 	slog = log --show-signature
-
 # GPG
 [commit]
 	gpgsign = false
 [gpg]
 	program = gpg
-
 # Merge and diff
 [merge]
 	keepBackup = false
-	tool = opendiff
+	tool = Kaleidoscope
 [diff]
-	tool = opendiff
-
+	tool = Kaleidoscope
 [log]
 	showSignature = false
-#[url "git@github.com:"]
-#	insteadOf = https://github.com/
 [url "https://github.com/"]
 	insteadOf = git@github.com:
 [rerere]
 	enabled = true
+[difftool "Kaleidoscope"]
+	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+[mergetool "Kaleidoscope"]
+	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	trustExitCode = true
+[difftool]
+	prompt = false
+[mergetool]
+	prompt = false
