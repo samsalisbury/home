@@ -1,1 +1,66 @@
-/Users/sam/src/github.com/samsalisbury/home/bin/src
+#!/usr/bin/env bash
+set -e
+
+DEFAULT_HOST=github.com
+DEFAULT_ORG=hashicorp
+
+[ -n "$SRC_BASEDIR" ] || SRC_BASEDIR="$HOME/src"
+
+log() { echo "$@" 1>&2; }
+debug() { [ "$DEBUG" != "YES" ] || log "[DEBUG] $*"; }
+die() { log "$@"; exit 1; }
+BIN="$(basename "$0")"
+
+[ -z "$1" ] && {
+	die "usage: $BIN github.com/<user>/<repo>"
+}
+
+if ! HOST_ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/[^/]+/?$')"; then
+	if ! ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/?$')"; then	
+		if ! REPO="$(echo "$1" | grep -Eo '^[^/]+/?$')"; then
+			echo "Unable to parse repo path."
+			exit 1
+		else
+			HOST_ORG_REPO="$DEFAULT_HOST/$DEFAULT_ORG/$REPO"
+		fi
+	else
+		HOST_ORG_REPO="$DEFAULT_HOST/$ORG_REPO"
+	fi
+fi
+
+[[ "$HOST_ORG_REPO" =~ github.com/.+/.+ ]] || {
+  die "$BIN only supports repos in the format github.com/<user>/<repo>"
+}
+
+REPO="$HOST_ORG_REPO"
+
+debug "Got valid repo: REPO=$REPO"
+
+DIR="$SRC_BASEDIR/$REPO"
+
+debug "Looking in: $DIR"
+
+[ ! -d "$DIR" ] || {
+	debug "$DIR exits, entering."
+	cd "$DIR"
+	[ -d .git ] || die "[ERR] $DIR exists but is not a git repo."
+	log "Already cloned."
+	echo "$DIR"
+	exit 0
+}
+
+debug "$DIR does not exist, creating base dir."
+mkdir -p "$(dirname "$DIR")"
+
+USER_REPO=${REPO#"github.com/"}
+debug "Got USER_REPO=$USER_REPO"
+
+GIT_URL="git@github.com:$USER_REPO.git"
+debug "Got GIT_URL=$GIT_URL"
+
+debug "Cloning."
+git clone "$GIT_URL" "$DIR" 2>&1 | sed 's/^/[ GIT ] /g' 1>&2
+
+log "Cloned $REPO_URL into $DIR"
+
+echo "$DIR"
