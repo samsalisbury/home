@@ -23,8 +23,10 @@
 	tool = Kaleidoscope
 [log]
 	showSignature = false
-[url "https://github.com/"]
-	insteadOf = git@github.com:
+#[url "https://github.com/"]
+#	insteadOf = git@github.com:
+[url "git@github.com:"]
+	insteadOf = https://github.com/
 [rerere]
 	enabled = true
 [difftool "Kaleidoscope"]
@@ -36,3 +38,10 @@
 	prompt = false
 [mergetool]
 	prompt = false
+[init]
+	defaultBranch = main
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
