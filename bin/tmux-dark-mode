@@ -1,49 +1,8 @@
 #!/usr/bin/env bash
 
-ARG="$1"
-
-set -euo pipefail
-
-vlog() { [ "$VERBOSE" = YES ] || return 0; echo "==> $*" 1>&2; }
-
-VERBOSE=NO
-if [ "$ARG" = "-v" ]; then
-	VERBOSE=YES
-	vlog "Verbose logging on."
-fi
+command -v defaults || { echo "$0: unable to detect dark mode: no defaults command."; exit; }
 
 # This command fails for Light mode, and prints "Dark" for dark mode.
-GET_SYSTEM_STYLE="defaults read -g AppleInterfaceStyle"
-if [ "$VERBOSE" = YES ]; then
-	vlog "Running $GET_SYSTEM_STYLE"
-	SYSTEM_STYLE="$($GET_SYSTEM_STYLE)" || SYSTEM_STYLE=Light
-else
-	SYSTEM_STYLE="$($GET_SYSTEM_STYLE 2>/dev/null)" || SYSTEM_STYLE=Light
-fi
-
-vlog "SYSTEM_STYLE=$SYSTEM_STYLE"
-
-if [ "$SYSTEM_STYLE" = Dark ]; then
-  	WANT_BG_COLOR="#171717"
-	WANT_FG_BORDER_COLOR="green"
-	WANT_FG_BORDER_HIGHLIGHT_COLOR="magenta"
-else
-	WANT_BG_COLOR="#ffffff"
-	WANT_FG_BORDER_COLOR="green"
-	WANT_FG_BORDER_HIGHLIGHT_COLOR="magenta"
-fi
-vlog "WANT_BG_COLOR=$WANT_BG_COLOR"
-vlog "WANT_FG_BORDER_COLOR=$WANT_FG_BORDER_COLOR"
-vlog "WANT_FG_BORDER_HIGHLIGHT_COLOR=$WANT_FG_BORDER_HIGHLIGHT_COLOR"
-
-set -x
-tmux set pane-border-style "bg=$WANT_BG_COLOR,fg=$WANT_FG_BORDER_COLOR"
-tmux set pane-active-border-style "bg=$WANT_BG_COLOR,fg=$WANT_FG_BORDER_HIGHLIGHT_COLOR"
-set +x
-
-PANES="$(tmux list-panes -a -F '#{pane_id}')"
-vlog "PANES=$PANES"
-
-for PANE in $PANES; do
-	tmux select-pane -t "$PANE" -P "bg=$WANT_BG_COLOR"
-done
+PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || echo Light)"
+[ "PALETTE" = "Dark" ] && dark
+[ "PALETTE" = "Dark" ] && light
