@@ -3,6 +3,8 @@
 # Shebang line above exists only so shellcheck knows this is bash, not sh.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
+source $HOME/funcs/darkmode.bash
+
 set -o vi
 
 PATH="$HOME/bin:$PATH"
@@ -13,8 +15,8 @@ export GOPATH="$HOME"
 shopt -u hostcomplete
 #complete -r hostname
 
-alias vim=nvim
-export EDITOR=nvim
+#alias vim=nvim
+#export EDITOR=nvim
 
 # Bash history settings.
 HISTSIZE=10000 # in-memory history items

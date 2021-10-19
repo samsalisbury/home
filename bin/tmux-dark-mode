@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-command -v defaults || { echo "$0: unable to detect dark mode: no defaults command."; exit; }
-
-# This command fails for Light mode, and prints "Dark" for dark mode.
-PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || echo Light)"
-[ "PALETTE" = "Dark" ] && dark
-[ "PALETTE" = "Dark" ] && light
