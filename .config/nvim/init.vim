@@ -1,5 +1,13 @@
 
-let g:deoplete#enable_at_startup = 1
+" plug_version c997 is from August 2021
+let plug_version = 'c9971346bb486ccff354aaee8606cc0d2d5a0c97'
+
+" Auto-bootstrap vim-plug
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/' . plug_version . '/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
 
 call plug#begin()
 
@@ -124,6 +132,8 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 """
 
+""" deoplete config
+let g:deoplete#enable_at_startup = 1
 " use ale as deoplete source
 call deoplete#custom#option('sources', { '_': ['ale', ], })
 """ deoplete end
