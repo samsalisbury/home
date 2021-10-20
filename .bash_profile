@@ -8,17 +8,26 @@ source $HOME/funcs/sourcetool.bash
 
 set -o vi
 
+# Python
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
 
 PYENV_VERSION=444088b1db11744365d93a24cc0ce68d3d54a089
 PYENV_VIRTUALENV_VERSION=f95d6a9bee20076f6dc2298878ecfb1b2f6a972c
 
-sourcetool "$HOME/.pyenv" \
+sourcetool "$PYENV_ROOT" \
 	https://github.com/pyenv/pyenv $PYENV_VERSION
 
-sourcetool "$HOME/.pyenv/plugins/pyenv-virtualenv" \
+sourcetool "$PYENV_ROOT/plugins/pyenv-virtualenv" \
 	https://github.com/pyenv/pyenv-virtualenv $PYENV_VIRTUALENV_VERSION
 
+eval "$(pyenv init --path)"
+eval "$(pyenv virtualenv-init -)"
+
+# My tools.
 PATH="$HOME/bin:$PATH"
+
+# Go
 export GOPATH="$HOME"
 
 # Don't attempt host completion. (This allows completion of filenames
@@ -91,7 +100,7 @@ fi
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="/usr/local/opt/ruby/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+command -v > /dev/null 2>&1 rbenv && eval "$(rbenv init -)"
 export PATH="/usr/local/opt/postgresql@12/bin:$PATH"
 
 # Autocompleters
