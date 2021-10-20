@@ -86,7 +86,7 @@ endfunction
 command! Light call Light()
 
 function! SysIsDarkMode()
-	let result = trim(system("defaults read -g AppleInterfaceStyle 2>/dev/null"))
+	let result = trim(system("cat ~/.local/state/darkmode/color-palette"))
 	if result == "Dark"
 		return 1
 	endif
