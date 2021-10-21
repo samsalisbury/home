@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
+# Disable warnings about not being able to follow source includes.
+# shellcheck disable=SC1090
+
 # Shebang line above exists only so shellcheck knows this is bash, not sh.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-source $HOME/funcs/darkmode.bash
-source $HOME/funcs/sourcetool.bash
+source "$HOME/funcs/darkmode.bash"
+source "$HOME/funcs/sourcetool.bash"
 
 set -o vi
 
@@ -96,11 +99,21 @@ if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
 	echo "==> Git configured for home directory; Ctrl+D to go back to previous shell."
 fi
 
-
+# Rust
 export PATH="$HOME/.cargo/bin:$PATH"
+
+# Ruby
 export PATH="/usr/local/opt/ruby/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
-command -v > /dev/null 2>&1 rbenv && eval "$(rbenv init -)"
+if command -v rbenv > /dev/null 2>&1; then
+	eval "$(rbenv init -)"
+fi
+
+# Python
+if command -v pyenv > /dev/null 2>&1; then
+  eval "$(pyenv init --path)"
+fi
+
 export PATH="/usr/local/opt/postgresql@12/bin:$PATH"
 
 # Autocompleters
@@ -129,5 +142,5 @@ function _makefile_targets {
 complete -F _makefile_targets make
 
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
