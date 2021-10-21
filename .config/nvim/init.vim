@@ -1,3 +1,4 @@
+"let g:python3_host_prog=$HOME.'/.venv/bin/python3'
 
 " plug_version c997 is from August 2021
 let plug_version = 'c9971346bb486ccff354aaee8606cc0d2d5a0c97'
