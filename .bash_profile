@@ -39,7 +39,8 @@ shopt -u hostcomplete
 #complete -r hostname
 
 #alias vim=nvim
-#export EDITOR=nvim
+export VISUAL=vim
+export EDITOR=$VISUAL
 
 # Bash history settings.
 HISTSIZE=10000 # in-memory history items

@@ -6,8 +6,6 @@
 	helper = osxkeychain
 [push]
 	default = simple
-[core]
-	editor = nvim
 [alias]
 	slog = log --show-signature
 # GPG
