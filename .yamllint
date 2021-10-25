@@ -1,8 +1,0 @@
----
-
-extends: relaxed 
-
-rules:
-  comments: disable
-  comments-indentation: disable
-  line-length: disable
