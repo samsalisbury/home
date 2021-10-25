@@ -110,10 +110,16 @@ set wrap
 set number
 set tabstop=4
 set shiftwidth=4
-set clipboard+=unnamedplus     " Use system clipboard
 set backspace=indent,eol,start " Enable 'normal' backspacing.
 set signcolumn=yes             " Always show the gutter so errors don't cause line width to change.
-highlight SignColumn guibg=darkgrey
+
+if has('nvim')
+	set clipboard+=unnamedplus " Use system clipboard on macOS (nvim)
+else
+	set clipboard+=unnamed     " Use system clipboard on macOS (vim)
+endif
+
+highlight SignColumn guibg=lightgrey
 """ general defaults end
 
 """ ale config
