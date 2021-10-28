@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Disable warnings about not being able to follow source includes.
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC1091
 
 # Shebang line above exists only so shellcheck knows this is bash, not sh.
 export BASH_SILENCE_DEPRECATION_WARNING=1
@@ -32,11 +32,6 @@ PATH="$HOME/bin:$PATH"
 
 # Go
 export GOPATH="$HOME"
-
-# Don't attempt host completion. (This allows completion of filenames
-# beginning with @ which unfortunately we have to use sometimes.)
-shopt -u hostcomplete
-#complete -r hostname
 
 #alias vim=nvim
 export VISUAL=vim
@@ -118,6 +113,14 @@ fi
 export PATH="/usr/local/opt/postgresql@12/bin:$PATH"
 
 # Autocompleters
+#
+
+# Don't attempt host completion. (This allows completion of filenames
+# beginning with @ which unfortunately we have to use sometimes.)
+shopt -u hostcomplete
+#complete -r hostname
+
+# AWS autocomplete
 complete -C '/usr/local/bin/aws_completer' aws
 
 # Makefile autocomplete
@@ -141,6 +144,13 @@ function _makefile_targets {
     COMPREPLY=( $(compgen -W "${targets[@]}" -- $curr_arg ) );
 }
 complete -F _makefile_targets make
+
+if [ ! -f git-completion.bash ]; then
+	echo "==> Attempting install of git-completion.bash"
+	curl -O https://raw.githubusercontent.com/git/git/223a1bfb5821387981c700654e4edd2443c5a7fc/contrib/completion/git-completion.bash
+fi
+
+source git-completion.bash
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
