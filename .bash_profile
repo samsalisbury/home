@@ -145,12 +145,15 @@ function _makefile_targets {
 }
 complete -F _makefile_targets make
 
-if [ ! -f git-completion.bash ]; then
-	echo "==> Attempting install of git-completion.bash"
-	curl -O https://raw.githubusercontent.com/git/git/223a1bfb5821387981c700654e4edd2443c5a7fc/contrib/completion/git-completion.bash
+# Git completion
+GIT_COMPLETION="$HOME/import/git-completion.bash"
+GIT_COMPLETION_VERSION=223a1bfb5821387981c700654e4edd2443c5a7fc
+if [ ! -f "$GIT_COMPLETION" ]; then
+	echo "==> Attempting to install git-completion.bash @$GIT_COMPLETION_VERSION"
+	curl --create-dirs -o "$GIT_COMPLETION" https://raw.githubusercontent.com/git/git/$GIT_COMPLETION_VERSION/contrib/completion/git-completion.bash
 fi
 
-source git-completion.bash
+source "$GIT_COMPLETION"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
