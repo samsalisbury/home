@@ -13,7 +13,7 @@ BIN="$(basename "$0")"
 
 
 open_tmux_window() {
-	if "$OPEN"; then
+	if "${OPEN:-false}"; then
 		echo "Opening in new tmux window..."
 		tmux new-window -c "$DIR" -n "$(basename "$DIR")"\; \
 			send-keys \
