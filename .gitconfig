@@ -21,8 +21,6 @@
 	tool = Kaleidoscope
 [log]
 	showSignature = false
-#[url "https://github.com/"]
-#	insteadOf = git@github.com:
 [url "git@github.com:"]
 	insteadOf = https://github.com/
 [rerere]

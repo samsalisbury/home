@@ -80,12 +80,14 @@ alias grh='git reset --hard'
 alias gs='git status'
 alias gup='git push'
 
-# Home git directory, for tracking dotfiles etc.
+# Home and system git directories, for tracking dotfiles etc.
 export HOME_GIT_DIR="$HOME/home.git"
+export NIXOS_GIT_DIR="/nixos.git"
 
 # Add 'home' alias to open an interactive subshell configured for managing
 # dotfiles etc via git, in my $HOME directory.
 alias home='/usr/bin/env GIT_DIR=$HOME_GIT_DIR GIT_WORK_TREE=$HOME bash -l'
+alias nixos='sudo /usr/bin/env HOME=$HOME GIT_DIR=$NIXOS_GIT_DIR GIT_WORK_TREE=/ bash -l'
 # Set up the environment when this profile is loaded in the new subshell.
 if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
 	cd "$HOME" || true
@@ -93,6 +95,17 @@ if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
 	# Override 'ga' func to add only modified files by default.
 	ga() { if [ -z "$*" ]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
 	echo "==> Git configured for home directory; Ctrl+D to go back to previous shell."
+fi
+if [ "$GIT_DIR" = "$NIXOS_GIT_DIR" ]; then
+	cd "/" || true
+	if [ ! -d "$GIT_DIR" ]; then
+		git init
+		git config status.showUntrackedFiles no
+	fi
+	export PS1="nixos.git> $PS1"
+	# Override 'ga' func to add only modified files by default.
+	ga() { if [ -z "$*" ]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
+	echo "==> Git configured for nixos root directory; Ctrl+D to go back to previous shell."
 fi
 
 # Rust
@@ -158,3 +171,8 @@ source "$GIT_COMPLETION"
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+
+rec() {
+	time grep -aFC 200 "$1" /dev/dm-2 > "$2.raw"
+}
