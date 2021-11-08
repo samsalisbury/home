@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+MAIN=main
+
+set -euo pipefail
+git branch --merged "$MAIN" --format='%(refname:lstrip=2)' | grep -Ev "^$MAIN\$"
