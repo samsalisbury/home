@@ -6,10 +6,9 @@
 # Shebang line above exists only so shellcheck knows this is bash, not sh.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-source "$HOME/funcs/darkmode.bash"
-source "$HOME/funcs/sourcetool.bash"
-
 set -o vi
+
+source "$HOME/funcs/sourcetool.bash"
 
 # Python
 export PYENV_ROOT="$HOME/.pyenv"
@@ -173,6 +172,11 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 
+# Temporary func used for reovering accidentally deleted nix config.
 rec() {
 	time grep -aFC 200 "$1" /dev/dm-2 > "$2.raw"
 }
+
+source "$HOME/funcs/darkmode.bash"
+source "$HOME/funcs/aliascompletion.bash"
+
