@@ -11,21 +11,28 @@ debug() { [ "$DEBUG" != "YES" ] || log "[DEBUG] $*"; }
 die() { log "$@"; exit 1; }
 BIN="$(basename "$0")"
 
+while getopts ":t" OPT; do
+	case $OPT in
+		t)
+			trap open_tmux_window EXIT
+			;;
+		\?)
+			die "Invalid option -$OPTARG"
+			;;
+	esac
+done
+
+shift $((OPTIND-1))
+
 
 open_tmux_window() {
-	if "${OPEN:-false}"; then
-		echo "Opening in new tmux window..."
-		tmux new-window -c "$DIR" -n "$(basename "$DIR")"\; \
-			send-keys \
-				"git branch | grep '*'" Enter \
-				"git log -n3" Enter \
-				"git status" Enter
-	else
-		echo "Not opening tmux window." 1>&2
-	fi
+	echo "Opening in new tmux window..."
+	tmux new-window -c "$DIR" -n "$(basename "$DIR")"\; \
+		send-keys \
+			"git branch | grep '*'" Enter \
+			"git log -n3" Enter \
+			"git status" Enter
 }
-
-trap open_tmux_window EXIT
 
 [ -z "$1" ] && {
 	die "usage: $BIN github.com/<user>/<repo>"
