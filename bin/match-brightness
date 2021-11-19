@@ -1,5 +1,26 @@
 #!/usr/bin/env bash
 
+ARG="$1"
+
+set -euo pipefail
+
+VERBOSE=false
+
+if [ "$ARG" == "--verbose" ]; then
+	VERBOSE=true
+elif [ -n "$ARG" ]; then
+	echo "usage: $0 [--verbose]"
+	exit 1
+fi
+
+run() {
+	if $VERBOSE; then
+		"$@" 1>&2
+	else
+		"$@" > /dev/null 2>&1
+	fi
+}
+
 # Match-brightness: make external monitor brightness match (roughly)
 # that of the builtin MacBook panel.
 #
@@ -12,6 +33,6 @@ B=$(ioreg -l -w0 -c AppleBacklightDisplay | \
 # T is target brightness of external panel.
 T=$((B/10))
 
-echo "Laptop panel at $B; setting monitor to $T."
+run echo "Laptop panel at $B; setting monitor to $T."
 
-ddcctl -d 1 -b $T
+run ddcctl -d 1 -b $T
