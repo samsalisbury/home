@@ -40,6 +40,7 @@ light() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	set_terminal_pallete
+	match-brightness
 }
 
 # light sets tmux to dark mode.
@@ -51,6 +52,7 @@ dark() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	set_terminal_pallete
+	match-brightness
 }
 
 set_terminal_pallete() {
@@ -69,9 +71,9 @@ set_terminal_pallete() {
 	tmux set pane-active-border-style "bg=$BG fg=$HIGHLIGHT"
 	
 	# Update all the currently-open panes to the right colour palette.
-	PANES="$(tmux list-panes -a -F '#{pane_id}')"
-	for PANE in $PANES; do
-		:
-		#tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
-	done
+	#PANES="$(tmux list-panes -a -F '#{pane_id}')"
+	#for PANE in $PANES; do
+	#	:
+	#	#tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
+	#done
 }
