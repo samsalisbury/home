@@ -14,27 +14,46 @@ system-palette() {
 	[ "$PALETTE" = "Light" ] && light
 }
 
+OSA_SCRIPT='tell application "System Events"'
+OSA_SCRIPT+='to tell appearance preferences to set dark mode to'
+
+set_macos_pallete() {
+	[ "$1" = "dark" ] && MAC_MODE="true"
+	[ "$1" = "light" ] && MAC_MODE="false"
+	osascript -e "$OSA_SCRIPT $MAC_MODE"
+}
+
+maclight() {
+	set_macos_pallete light
+}
+
+macdark() {
+	set_macos_pallete dark
+}
+
 # light sets tmux to light mode.
 light() {
+	maclight
 	MODE=Light
 	BG="#FFFFFF"
 	FG="#171717"
 	BORDER=green
 	HIGHLIGHT=magenta
-	enact_palette
+	set_terminal_pallete
 }
 
 # light sets tmux to dark mode.
 dark() {
+	macdark
 	MODE=Dark
 	BG="#171717"
 	FG="#99FF33"
 	BORDER=green
 	HIGHLIGHT=magenta
-	enact_palette
+	set_terminal_pallete
 }
 
-enact_palette() {
+set_terminal_pallete() {
 	echo "$MODE" > "$PALETTE_STATE"
 
 	WINDOW_STYLE="bg=$BG fg=$FG"
