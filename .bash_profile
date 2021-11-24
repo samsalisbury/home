@@ -179,4 +179,5 @@ rec() {
 
 source "$HOME/funcs/darkmode.bash"
 source "$HOME/funcs/aliascompletion.bash"
+source "$HOME/funcs/new.bash"
 
