@@ -23,6 +23,17 @@ module.exports = {
 				}
 				return urlString
 			}
+		},
+
+		{
+			match: [
+				"zoom.us*",
+				finicky.matchDomains(/.*\zoom.us/),
+				/zoom.us\/j\//,
+			],
+			browser: "us.zoom.xos"
 		}
+
+
 	],
 }
