@@ -29,9 +29,11 @@ open_tmux_window() {
 	echo "Opening in new tmux window..."
 	tmux new-window -c "$DIR" -n "$(basename "$DIR")"\; \
 		send-keys \
-			"git log -n3" Enter \
-			"git status" Enter \
-			"git -c color.branch=always branch | sort | tac | head -n10" Enter
+			"clear && " \
+			"git log -n3 && echo && " \
+			"git status && echo && " \
+			"git -c color.branch=always branch | sort | tac | head -n10" \
+			Enter
 }
 
 [ -z "$1" ] && {
