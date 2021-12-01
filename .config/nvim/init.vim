@@ -150,6 +150,7 @@ call deoplete#custom#option('sources', { '_': ['ale', ], })
 """ vim-go config
 let g:go_fmt_command = "goimports"
 let g:go_fmt_autosave = 1
+let g:go_list_type = "quickfix"
 """ vim-go end
 
 """ Go Text Templates syntax highlighting (see below for disabling problematic

@@ -30,7 +30,8 @@ eval "$(pyenv virtualenv-init -)"
 PATH="$HOME/bin:$PATH"
 
 # Go
-export GOPATH="$HOME"
+export GOPATH="$HOME/go"
+PATH="$GOPATH/bin:$PATH"
 
 #alias vim=nvim
 export VISUAL=vim
