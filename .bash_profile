@@ -141,19 +141,23 @@ shopt -u hostcomplete
 # AWS autocomplete
 complete -C '/usr/local/bin/aws_completer' aws
 
+read_make_targets() {
+	grep -oE '^[a-zA-Z0-9_-]+:' "$1" \
+	| sed 's/://' \
+	| tr '\n' ' '
+}
+
 # Makefile autocomplete
-function _makefile_targets {
+_makefile_targets() {
     local curr_arg;
     local targets;
 
     # Find makefile targets available in the current directory
     targets=''
-    if [[ -e "$(pwd)/Makefile" ]]; then
-        targets=$( \
-            grep -oE '^[a-zA-Z0-9_-]+:' Makefile \
-            | sed 's/://' \
-            | tr '\n' ' ' \
-        )
+    if [[ -e "$(pwd)/GNUMakefile" ]]; then
+		targets=$(read_make_targets GNUMakefile)
+    elif [[ -e "$(pwd)/Makefile" ]]; then
+		targets=$(read_make_targets Makefile)
     fi
 
     # Filter targets based on user input to the bash completion
