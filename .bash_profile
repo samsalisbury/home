@@ -34,7 +34,7 @@ export GOPATH="$HOME/go"
 PATH="$GOPATH/bin:$PATH"
 
 alias vim=nvim
-export VISUAL=vim
+export VISUAL=nvim
 export EDITOR=$VISUAL
 
 # Bash history settings.
