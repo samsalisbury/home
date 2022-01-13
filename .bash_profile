@@ -142,7 +142,7 @@ shopt -u hostcomplete
 complete -C '/usr/local/bin/aws_completer' aws
 
 read_make_targets() {
-	grep -oE '^[a-zA-Z0-9_-]+:' "$1" \
+	grep -oE '^[a-zA-Z0-9/_-]+:' "$1" \
 	| sed 's/://' \
 	| tr '\n' ' '
 }
