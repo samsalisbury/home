@@ -33,7 +33,7 @@ PATH="$HOME/bin:$PATH"
 export GOPATH="$HOME/go"
 PATH="$GOPATH/bin:$PATH"
 
-#alias vim=nvim
+alias vim=nvim
 export VISUAL=vim
 export EDITOR=$VISUAL
 
