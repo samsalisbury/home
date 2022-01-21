@@ -9,6 +9,7 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 set -o vi
 
 source "$HOME/funcs/sourcetool.bash"
+source "$HOME/funcs/getport.bash"
 
 # Python
 export PYENV_ROOT="$HOME/.pyenv"
