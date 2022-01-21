@@ -22,7 +22,7 @@ call plug#begin()
 	"Plug 'morhetz/gruvbox'
 
 	" Code completion and linters
-	Plug 'w0rp/ale'
+	"Plug 'w0rp/ale'
 
 	Plug 'Shougo/context_filetype.vim' " Required by deoplete due to bug.
 	if has('nvim')
@@ -36,7 +36,8 @@ call plug#begin()
 	Plug 'scrooloose/syntastic'
 
 	" Golang specific
-	Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', 'do': ':GoUpdateBinaries', }
+	"Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', 'do': ':GoUpdateBinaries', }
+	Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', }
 
 	" Rust
 	Plug 'rust-lang/rust.vim'
@@ -122,13 +123,13 @@ endif
 highlight SignColumn guibg=lightgrey
 """ general defaults end
 
-""" ale config
-let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], }
-" Use tab to cycle through completions.
-inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<TAB>"
-" Use shift tab to cycle backwards through completions.
-inoremap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-TAB>
-"""
+"""" ale config
+"let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], }
+"" Use tab to cycle through completions.
+"inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<TAB>"
+"" Use shift tab to cycle backwards through completions.
+"inoremap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-TAB>
+""""
 
 """ syntastic config
 set statusline+=%#warningmsg#
