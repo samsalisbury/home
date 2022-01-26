@@ -102,8 +102,6 @@ function! AutoDarkMode(...) " The ... allows swallowing the timer ID passed by t
 	endif
 endfunction
 command! AutoDarkMode call AutoDarkMode()
-call AutoDarkMode()
-call timer_start(3000, "AutoDarkMode", {"repeat": -1})
 
 """ general defaults
 syntax on
