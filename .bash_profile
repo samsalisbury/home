@@ -93,7 +93,7 @@ export NIXOS_GIT_DIR="/nixos.git"
 # Add 'home' alias to open an interactive subshell configured for managing
 # dotfiles etc via git, in my $HOME directory.
 alias home='/usr/bin/env GIT_DIR=$HOME_GIT_DIR GIT_WORK_TREE=$HOME bash -l'
-alias nixos='sudo /usr/bin/env HOME=$HOME GIT_DIR=$NIXOS_GIT_DIR GIT_WORK_TREE=/ bash -l'
+alias system='sudo /usr/bin/env HOME=$HOME GIT_DIR=$NIXOS_GIT_DIR GIT_WORK_TREE=/ bash -l'
 # Set up the environment when this profile is loaded in the new subshell.
 if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
 	cd "$HOME" || true
