@@ -138,6 +138,8 @@ let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
 let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
+
+let g:syntastic_sh_shellcheck_args="-x"
 """
 
 """ deoplete config
@@ -183,3 +185,6 @@ autocmd FileType Makefile setlocal indentkeys-=<:>
 
 """ Disable opening a help window on autocomplete.
 set completeopt-=preview
+
+""" Trim trailing whitespace before save.
+autocmd FileType go,json,js,yaml,yml,bash,bats,hcl,py,c,cpp,java,php autocmd BufWritePre <buffer> %s/\s\+$//e
