@@ -142,6 +142,14 @@ shopt -u hostcomplete
 # AWS autocomplete
 complete -C '/usr/local/bin/aws_completer' aws
 
+# read_make_targets2 processes the Makefile to expand
+# generated targets, giving a much more useful completion
+# list.
+read_make_targets2() {
+	local MAKEFILE="$1"
+	LC_ALL=C make -pRrq -f "$MAKEFILE" : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($1 !~ "^[#.]") {print $1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$' || true
+}
+
 read_make_targets() {
 	grep -oE '^[a-zA-Z0-9/_-]+:' "$1" \
 	| sed 's/://' \
@@ -156,9 +164,9 @@ _makefile_targets() {
     # Find makefile targets available in the current directory
     targets=''
     if [[ -e "$(pwd)/GNUMakefile" ]]; then
-		targets=$(read_make_targets GNUMakefile)
+		targets=$(read_make_targets2 GNUMakefile)
     elif [[ -e "$(pwd)/Makefile" ]]; then
-		targets=$(read_make_targets Makefile)
+		targets=$(read_make_targets2 Makefile)
     fi
 
     # Filter targets based on user input to the bash completion
