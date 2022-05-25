@@ -105,7 +105,7 @@ _ext_map+=(
 
 _new_makefile() {
 	_new_file "$1" '
-		SHELL := /usr/bin/env bash -euo pipefail -C
+		SHELL := /usr/bin/env bash -euo pipefail -c
 
 		target:
 			@echo recipe
