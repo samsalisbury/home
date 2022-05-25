@@ -6,13 +6,12 @@ new() {
 		set -eu
 		test -n "$1"
 		if test -f "$1"; then
-			echo "File '$1' already exists, opening as-is..."
-			sleep 1
+			log "File '$1' already exists, opening as-is..."
 		else
 			_new_based_on_extension "$1"
-			sleep 1
 		fi
 	) && {
+		sleep 1 # Pause so log messages can be seen.
 		if [[ "$EDITOR" = *vim ]]; then
 			"$EDITOR" +\$ "$1"
 		else
@@ -47,11 +46,14 @@ _new_based_on_extension() { local FILENAME="$1"
 }
 
 _new_file() { local FILENAME="$1"; local BODY="$2"
-	echo -n "$BODY" | sed -E -e 's/^\t{2}(.*)$/\1/g' -e '/^\t$/d' | tail -n+2 > "$FILENAME"
+	log "Creating new file: $1"
+	TRIMMED="$(echo -n "$BODY" | sed -E -e 's/^\t{2}(.*)$/\1/g' -e '/^\t$/d' | tail -n +2)"
+	echo -n "$TRIMMED" > "$FILENAME"
 }
 
 _new_executable() { local FILENAME="$1"; local BODY="$2"
 	_new_file "$FILENAME" "$BODY"
+	log "Making it executable..."
 	chmod +x "$FILENAME"
 }
 
@@ -90,10 +92,8 @@ _new_bats_executable() {
 
 		set -Eeuo pipefail
 
-		@"test number one" {
+		@test "new test" {
 			echo "Hi!"
 		}
 	'
-	printf '' > "$1"
-	chmod +x "$1"
 }
