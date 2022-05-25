@@ -21,7 +21,7 @@ new() {
 }
 
 _has_extension() { local EXT="$1"; local FILENAME="$2"
-	grep -Eq "^.+${EXT}\$" <<< "$FILENAME"
+	grep -Eq "^.*${EXT}\$" <<< "$FILENAME"
 }
 
 _ext_map=()
@@ -95,5 +95,19 @@ _new_bats_executable() {
 		@test "new test" {
 			echo "Hi!"
 		}
+	'
+}
+
+_ext_map+=(
+	Makefile    _new_makefile
+	GNUmakefile _new_makefile
+)
+
+_new_makefile() {
+	_new_file "$1" '
+		SHELL := /usr/bin/env bash -euo pipefail -C
+
+		target:
+			@echo recipe
 	'
 }
