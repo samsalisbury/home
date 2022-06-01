@@ -6,34 +6,34 @@
 # Shebang line above exists only so shellcheck knows this is bash, not sh.
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
+alias ibrew="arch -x86_64 /usr/local/bin/brew"
+alias mbrew="arch -arm64e /opt/homebrew/bin/brew"
+
 set -o vi
 
 source "$HOME/funcs/sourcetool.bash"
 source "$HOME/funcs/getport.bash"
 
-# Python
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-
-PYENV_VERSION=444088b1db11744365d93a24cc0ce68d3d54a089
-PYENV_VIRTUALENV_VERSION=f95d6a9bee20076f6dc2298878ecfb1b2f6a972c
-
-sourcetool "$PYENV_ROOT" \
-	https://github.com/pyenv/pyenv $PYENV_VERSION
-
-sourcetool "$PYENV_ROOT/plugins/pyenv-virtualenv" \
-	https://github.com/pyenv/pyenv-virtualenv $PYENV_VIRTUALENV_VERSION
-
-eval "$(pyenv init --path)"
+## Python
+export PYENV_ROOT="$HOME/.pyenv" 
+export PATH="$PYENV_ROOT/bin:$PATH" 
+eval "$(pyenv init --path)" 
+eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
+
+#sourcetool "$PYENV_ROOT/plugins/pyenv-virtualenv" \
+#	https://github.com/pyenv/pyenv-virtualenv $PYENV_VIRTUALENV_VERSION
+
 
 # My tools.
 PATH="$HOME/bin:$PATH"
 
 # Go
 export GOPATH="$HOME/go"
+PATH="/usr/local/go/bin:$PATH"
 PATH="$GOPATH/bin:$PATH"
 
+# Editor
 alias vim=nvim
 export VISUAL=nvim
 export EDITOR=$VISUAL
