@@ -1,11 +1,13 @@
 
-" plug_version c997 is from August 2021
-let plug_version = 'c9971346bb486ccff354aaee8606cc0d2d5a0c97'
+let g:python3_host_prog = '$HOME/.pyenv/versions/py3nvim/bin/python'
+
+" plug_version 8fdabfba0b5a1b0616977a32d9e04b4b98a6016a is from May 2022
+let plug_version = '8fdabfba0b5a1b0616977a32d9e04b4b98a6016a'
 
 " Auto-bootstrap vim-plug
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/' . plug_version . '/plug.vim'
+  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/' . plug_version . '/plug.vim'
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
