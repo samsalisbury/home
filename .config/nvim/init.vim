@@ -35,11 +35,14 @@ call plug#begin()
 		Plug 'roxma/vim-hug-neovim-rpc'
 	endif
 
-	Plug 'scrooloose/syntastic'
+	Plug 'vim-syntastic/syntastic'
+
+	Plug 'aliou/bats.vim'
 
 	" Golang specific
 	"Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', 'do': ':GoUpdateBinaries', }
-	Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', }
+	"Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', }
+	Plug 'fatih/vim-go'
 
 	" Rust
 	Plug 'rust-lang/rust.vim'
@@ -142,12 +145,14 @@ let g:syntastic_check_on_open = 1
 let g:syntastic_check_on_wq = 0
 
 let g:syntastic_sh_shellcheck_args="-x"
+let g:syntastic_sh_checkers = [ "shellcheck" ]
+let g:syntastic_filetype_map = { "bats": "sh" }
 """
 
 """ deoplete config
-let g:deoplete#enable_at_startup = 1
+"let g:deoplete#enable_at_startup = 1
 " use ale as deoplete source
-call deoplete#custom#option('sources', { '_': ['ale', ], })
+"call deoplete#custom#option('sources', { '_': ['ale', ], })
 """ deoplete end
 
 """ vim-go config
