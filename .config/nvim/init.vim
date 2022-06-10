@@ -24,7 +24,8 @@ call plug#begin()
 	"Plug 'morhetz/gruvbox'
 
 	" Code completion and linters
-	"Plug 'w0rp/ale'
+	Plug 'w0rp/ale'
+	Plug 'hankei6km/ale-linter-actionlint.vim'
 
 	Plug 'Shougo/context_filetype.vim' " Required by deoplete due to bug.
 	if has('nvim')
@@ -127,7 +128,7 @@ highlight SignColumn guibg=lightgrey
 """ general defaults end
 
 """" ale config
-"let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], }
+let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], 'yaml': ['actionlint']}
 "" Use tab to cycle through completions.
 "inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<TAB>"
 "" Use shift tab to cycle backwards through completions.
