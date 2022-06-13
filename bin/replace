@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Wraps call to sed -i to delete the backup files at the same time.
+
+set -Eeuo pipefail
+
+SED_COMMAND="$1"
+shift
+
+echo "==> Replacing in named files..."
+sed -i.bak -E "$SED_COMMAND" "$@" || {
+	echo "==> ERROR: sed failed"
+	exit 1
+}
+
+echo "==> Cleaning up .bak files..."
+for F in "$@"; do
+	rm "$F.bak"
+done
+
+find . -name '*.bak' | grep . && {
+	echo "==> WARNING: You have some .bak files in your file tree, you might want to remove them:"
+	find . -name '*.bak'
+}
