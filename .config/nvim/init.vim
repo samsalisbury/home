@@ -24,7 +24,7 @@ call plug#begin()
 	"Plug 'morhetz/gruvbox'
 
 	" Code completion and linters
-	Plug 'w0rp/ale'
+	Plug 'dense-analysis/ale'
 	Plug 'hankei6km/ale-linter-actionlint.vim'
 
 	Plug 'Shougo/context_filetype.vim' " Required by deoplete due to bug.
@@ -36,7 +36,7 @@ call plug#begin()
 		Plug 'roxma/vim-hug-neovim-rpc'
 	endif
 
-	Plug 'vim-syntastic/syntastic'
+	"Plug 'vim-syntastic/syntastic'
 
 	Plug 'aliou/bats.vim'
 
@@ -129,26 +129,27 @@ highlight SignColumn guibg=lightgrey
 
 """" ale config
 let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], 'yaml': ['actionlint']}
+let g:ale_sh_shellcheck_options = '-x'
 "" Use tab to cycle through completions.
 "inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<TAB>"
 "" Use shift tab to cycle backwards through completions.
 "inoremap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-TAB>
 """"
 
-""" syntastic config
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
-
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-
-let g:syntastic_sh_shellcheck_args="-x"
-let g:syntastic_sh_checkers = [ "shellcheck" ]
-let g:syntastic_filetype_map = { "bats": "sh" }
-"""
+"""" syntastic config
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
+"
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+"let g:syntastic_check_on_wq = 0
+"
+"let g:syntastic_sh_shellcheck_args="-x"
+"let g:syntastic_sh_checkers = [ "shellcheck" ]
+"let g:syntastic_filetype_map = { "bats": "sh" }
+""""
 
 """ deoplete config
 "let g:deoplete#enable_at_startup = 1
