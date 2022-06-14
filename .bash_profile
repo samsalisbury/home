@@ -59,6 +59,7 @@ shopt -s cmdhist
 
 alias l='ls -lahG'
 alias t='tree'
+alias ag='ag --hidden'
 
 # git shortcuts
 ga() { if [ -z "$*" ]; then git add .; else git add "$@"; fi; }
