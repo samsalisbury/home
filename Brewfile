@@ -1,7 +1,9 @@
 tap "homebrew/bundle"
 tap "homebrew/cask"
+tap "homebrew/cask-versions"
 tap "homebrew/core"
 tap "srkomodo/tap"
+
 brew "act"
 brew "actionlint"
 brew "awscli"
@@ -38,13 +40,13 @@ brew "openssl"
 brew "pandoc"
 brew "parallel", args: ["force", "overwrite"]
 brew "pinentry-mac"
-# No, use pyenv to install python!
-# NO! brew "python"
-# NO! brew "python3"
+# Don't install python here; use pyenv to install it.
 brew "python-yq"
 brew "readline"
+brew "reattach-to-user-namespace"
 brew "shellcheck"
 brew "sqlite3"
+brew "tailscale"
 brew "the_silver_searcher"
 brew "tmux"
 brew "tree"
@@ -60,11 +62,28 @@ brew "xz"
 brew "zlib"
 
 cask "aerial"
+cask "affinity-publisher"
 cask "alt-tab"
 cask "docker"
+cask "finicky"
 cask "keybase"
 cask "keycastr"
 cask "kitty"
 cask "ksdiff"
 cask "parallels"
+cask "vscodium"
 cask "wkhtmltopdf"
+
+mas "1Password 7",                 id: 1333542190
+mas "Adblock Plus for Safari ABP", id: 1432731683
+mas "Affinity Designer",           id: 824171161
+mas "Developer",                   id: 640199958
+mas "Garageband",                  id: 682658836
+mas "iMovie",                      id: 408981434
+mas "Kaleidoscope",                id: 1575557335
+mas "Keynote",                     id: 409183694
+mas "Noir",                        id: 1592917505
+mas "Numbers",                     id: 409203825
+mas "Pages",                       id: 409201541
+mas "Vectornator",                 id: 1219074514
+mas "Xcode",                       id: 497799835
