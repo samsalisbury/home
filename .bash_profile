@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+PATH="/opt/homebrew/bin:$PATH"
+
+start="$(gdate +%s.%N)"
+
 # Disable warnings about not being able to follow source includes.
 # shellcheck disable=SC1090,SC1091
 
@@ -13,6 +17,7 @@ set -o vi
 
 source "$HOME/funcs/sourcetool.bash"
 source "$HOME/funcs/getport.bash"
+source "$HOME/funcs/creds.bash"
 
 ## Python
 export PYENV_ROOT="$HOME/.pyenv" 
@@ -37,6 +42,16 @@ PATH="$GOPATH/bin:$PATH"
 alias vim=nvim
 export VISUAL=nvim
 export EDITOR=$VISUAL
+
+# GitHub - auto-load credentials if available.
+gh() {
+	local BIN
+	BIN="$(which gh)"
+	(
+		creds github > /dev/null 2>&1
+		"$BIN" "$@"
+	)
+}
 
 # Bash history settings.
 HISTSIZE=10000 # in-memory history items
@@ -187,9 +202,9 @@ fi
 
 source "$GIT_COMPLETION"
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
+#[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 
 # Temporary func used for reovering accidentally deleted nix config.
@@ -201,4 +216,29 @@ source "$HOME/funcs/darkmode.bash"
 source "$HOME/funcs/aliascompletion.bash"
 source "$HOME/funcs/new.bash"
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Warn if docker containers are running.
+docker_is_running() {
+	curl --connect-timeout 0.0001 -s --unix-socket /var/run/docker.sock http/_ping > /dev/null 2>&1
+}
+
+# Returns the number of running docker containers.
+# If docker's not running or there are zero containers,
+# the command fails with nonzero exit code.
+docker_running_containers_count() {
+	local COUNT=0
+	docker_is_running && COUNT="$(docker ps -q | wc -l | xargs)" || return 1
+	[[ $COUNT -ne 0 ]]
+}
+
+print_docker_status() {
+	local COUNT
+	COUNT="$(docker_running_containers_count)" || return 0
+	echo "NOTE: You have $COUNT docker containers running. Run 'docker ps;' to see what they are."
+}
+
+print_docker_status
+
+end="$(gdate +%s.%N)"
+
+echo -n ".bash_profile runtime: "
+echo "$end - $start" | bc -l
