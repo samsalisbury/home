@@ -19,6 +19,7 @@
 	tool = Kaleidoscope
 [diff]
 	tool = Kaleidoscope
+	wsErrorHighlight = all
 [log]
 	showSignature = false
 [url "git@github.com:"]
