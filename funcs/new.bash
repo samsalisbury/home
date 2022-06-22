@@ -8,6 +8,9 @@ new() {
 		if test -f "$1"; then
 			log "File '$1' already exists, opening as-is..."
 		else
+			local DIR
+			DIR="$(dirname "$1")"
+			[[ -d "$DIR" ]] || mkdir -p "$DIR"
 			_new_based_on_extension "$1"
 		fi
 	) && {
@@ -102,7 +105,6 @@ _ext_map+=(
 	Makefile    _new_makefile
 	GNUmakefile _new_makefile
 )
-
 _new_makefile() {
 	_new_file "$1" '
 		SHELL := /usr/bin/env bash -euo pipefail -c
@@ -111,3 +113,75 @@ _new_makefile() {
 			@echo recipe
 	'
 }
+
+
+_get_go_package() {
+	local FILE="$1"
+	local DIR
+	DIR="$(dirname "$1")"
+
+	# First see if there's a package already in this dir.
+	local GOFILE
+	if GOFILE="$(find "$DIR" -name "*.go" -maxdepth 1 -mindepth 1 2> /dev/null | head -n1)"; then
+		log "Found go file '$GOFILE' in $DIR/"
+		if [[ -n "$GOFILE" ]]; then
+			if PACKAGE="$(ggrep -Pom 1 '^package \K\w+' "$GOFILE")"; then
+				log "Package '$PACKAGE' found in $DIR"
+				echo "$PACKAGE"
+				return 0
+			else
+				log "No package found in '$GOFILE'"
+			fi
+		else
+			log "No go files found in $DIR/"
+		fi
+	fi
+
+	# If not, is this file called 'main.go'?
+	if [[ "$FILE" = "main.go" ]]; then
+		log "File is 'main.go' so using package name 'main'"
+		echo "main"
+		return 0
+	fi
+
+	# Otherwise us the directory's name.
+	local DIRNAME
+	if DIRNAME="$(basename "$(realpath "$DIR")")"; then
+		log "Using directory name '$DIRNAME' as go package name."
+		echo "$DIRNAME"
+		return 0
+	fi
+	log "Error: Unable to guess package name for $1"
+	return 1
+}
+
+_ext_map+=(
+	_test.go _new_go_test
+)
+_new_go_test() {
+	local PACKAGE
+	PACKAGE="$(_get_go_package "$1")" || return 1
+	_new_file "$1" '
+		package '"$PACKAGE"'
+
+		import "testing"
+
+		TestBlahBlah(t *testing.T) {
+			t.Println("Hi!")
+		}
+	'
+}
+
+_ext_map+=(
+	.go _new_go_file
+)
+_new_go_file() {
+	local PACKAGE
+	PACKAGE="$(_get_go_package "$1")" || return 1
+	_new_file "$1" '
+		package '"$PACKAGE"'
+
+		// TODO
+	'
+}
+
