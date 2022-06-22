@@ -227,12 +227,13 @@ docker_is_running() {
 docker_running_containers_count() {
 	local COUNT=0
 	docker_is_running && COUNT="$(docker ps -q | wc -l | xargs)" || return 1
-	[[ $COUNT -ne 0 ]]
+	echo "$COUNT"
 }
 
 print_docker_status() {
 	local COUNT
 	COUNT="$(docker_running_containers_count)" || return 0
+	[[ "$COUNT" -ne 0 ]] || return 0
 	echo "NOTE: You have $COUNT docker containers running. Run 'docker ps;' to see what they are."
 }
 
