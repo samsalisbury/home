@@ -166,8 +166,8 @@ _new_go_test() {
 
 		import "testing"
 
-		TestBlahBlah(t *testing.T) {
-			t.Println("Hi!")
+		func TestBlahBlah(t *testing.T) {
+			t.Log("Hi!")
 		}
 	'
 }
