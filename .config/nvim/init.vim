@@ -152,9 +152,9 @@ let g:ale_sh_shellcheck_options = '-x'
 """"
 
 """ deoplete config
-"let g:deoplete#enable_at_startup = 1
+let g:deoplete#enable_at_startup = 1
 " use ale as deoplete source
-"call deoplete#custom#option('sources', { '_': ['ale', ], })
+call deoplete#custom#option('sources', { '_': ['ale', ], })
 """ deoplete end
 
 """ vim-go config
