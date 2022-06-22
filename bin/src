@@ -27,7 +27,7 @@ shift $((OPTIND-1))
 
 open_tmux_window() {
 	echo "Opening in new tmux window..."
-	tmux new-window -c "$DIR" -n "$(basename "$DIR")"\; \
+	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
 		send-keys \
 			"clear && " \
 			"git log -n3 && echo && " \
