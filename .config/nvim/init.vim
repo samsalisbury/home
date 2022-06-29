@@ -155,6 +155,8 @@ let g:ale_sh_shellcheck_options = '-x'
 let g:deoplete#enable_at_startup = 1
 " use ale as deoplete source
 call deoplete#custom#option('sources', { '_': ['ale', ], })
+" <TAB>: completion.
+inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
 """ deoplete end
 
 """ vim-go config
