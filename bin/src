@@ -11,10 +11,26 @@ debug() { [ "$DEBUG" != "YES" ] || log "[DEBUG] $*"; }
 die() { log "$@"; exit 1; }
 BIN="$(basename "$0")"
 
+open_tmux_window() {
+	local REPO="$1"
+	local DIR="$2"
+	echo "Opening in new tmux window..."
+	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
+		send-keys \
+			"clear && " \
+			"$BIN '$REPO' && " \
+			"git log -n3 && echo && " \
+			"git status && echo && " \
+			"git -c color.branch=always branch | sort | tac | head -n10" \
+			Enter
+}
+
+SHOULD_OPEN_TMUX_WINDOW=false
+
 while getopts ":t" OPT; do
 	case $OPT in
 		t)
-			trap open_tmux_window EXIT
+			SHOULD_OPEN_TMUX_WINDOW=true
 			;;
 		\?)
 			die "Invalid option -$OPTARG"
@@ -23,18 +39,6 @@ while getopts ":t" OPT; do
 done
 
 shift $((OPTIND-1))
-
-
-open_tmux_window() {
-	echo "Opening in new tmux window..."
-	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
-		send-keys \
-			"clear && " \
-			"git log -n3 && echo && " \
-			"git status && echo && " \
-			"git -c color.branch=always branch | sort | tac | head -n10" \
-			Enter
-}
 
 [ -z "$1" ] && {
 	die "usage: $BIN github.com/<user>/<repo>"
@@ -56,6 +60,11 @@ fi
 [[ "$HOST_ORG_REPO" =~ github.com/.+/.+ ]] || {
   die "$BIN only supports repos in the format github.com/<user>/<repo>"
 }
+
+
+if $SHOULD_OPEN_TMUX_WINDOW; then
+	trap 'open_tmux_window "$REPO" "$DIR"' EXIT
+fi
 
 REPO="$HOST_ORG_REPO"
 
