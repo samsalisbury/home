@@ -158,19 +158,21 @@ shopt -u hostcomplete
 # AWS autocomplete
 complete -C '/usr/local/bin/aws_completer' aws
 
-# read_make_targets2 processes the Makefile to expand
+# read_make_targets_dynamic processes the Makefile to expand
 # generated targets, giving a much more useful completion
 # list.
-read_make_targets2() {
+read_make_targets_dynamic() {
 	local MAKEFILE="$1"
-	LC_ALL=C make -pRrq -f "$MAKEFILE" : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($1 !~ "^[#.]") {print $1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$' || true
+	LC_ALL=C make -pRrq -f "$MAKEFILE" : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($1 !~ "^[#.]") {print $1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$'
 }
 
-read_make_targets() {
+read_make_targets_static() {
 	grep -oE '^[a-zA-Z0-9/_-]+:' "$1" \
 	| sed 's/://' \
 	| tr '\n' ' '
 }
+
+read_make_targets() { read_make_targets_dynamic "$1" || read_make_targets_static "$1"; }
 
 # Makefile autocomplete
 _makefile_targets() {
@@ -180,9 +182,9 @@ _makefile_targets() {
     # Find makefile targets available in the current directory
     targets=''
     if [[ -e "$(pwd)/GNUMakefile" ]]; then
-		targets=$(read_make_targets2 GNUMakefile)
+		targets=$(read_make_targets GNUMakefile)
     elif [[ -e "$(pwd)/Makefile" ]]; then
-		targets=$(read_make_targets2 Makefile)
+		targets=$(read_make_targets Makefile)
     fi
 
     # Filter targets based on user input to the bash completion
