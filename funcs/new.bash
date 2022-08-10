@@ -185,3 +185,10 @@ _new_go_file() {
 	'
 }
 
+_ext_map+=(
+	.txt _new_txt_file
+	.md  _new_txt_file
+)
+_new_txt_file() {
+	_new_file "$1" ''
+}
