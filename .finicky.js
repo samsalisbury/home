@@ -3,6 +3,9 @@
 
 module.exports = {
 	defaultBrowser: "Safari",
+	options: {
+		logRequests: true,
+	},
 	handlers: [
 		{
 			match: ({ url }) => url.host.endsWith("hashicorp.slack.com"),
@@ -25,15 +28,13 @@ module.exports = {
 			}
 		},
 
-		{
-			match: [
-				"zoom.us*",
-				finicky.matchDomains(/.*\zoom.us/),
-				/zoom.us\/j\//,
-			],
-			browser: "us.zoom.xos"
-		}
-
-
+		//{
+		//	match: [
+		//		"zoom.us*",
+		//		finicky.matchDomains(/.*\zoom.us/),
+		//		/zoom.us\/j\//,
+		//	],
+		//	browser: "us.zoom.xos"
+		//},
 	],
 }
