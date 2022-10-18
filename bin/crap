@@ -3,12 +3,16 @@
 # Crap - make a directory for doing random work in outside of any project,
 #        and print its path.
 #
-# Typical usage: 'cd $(crap)'
+# Typical usage: 'cd $(crap blahblah)'
 
 set -euo pipefail
 
 DATE="$(date +%Y-%m-%d)"
+NAME="${1:-$DATE}"
 BASEDIR="$HOME/.crap"
-DIR="$BASEDIR/crap-$DATE"
-mkdir -p "$DIR"
+DIR="$BASEDIR/$NAME"
+[[ -d "$DIR" ]] || {
+	mkdir -p "$DIR"
+	echo "Crap Dir '$NAME' - Created $DATE" > "$DIR/readme.txt"
+}
 echo "$DIR"
