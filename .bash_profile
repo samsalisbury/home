@@ -2,6 +2,9 @@
 
 PATH="/opt/homebrew/bin:$PATH"
 
+# Some scripts and Makefiles this to decide whether to clear the screen.
+export AUTOCLEAR=1
+
 start="$(gdate +%s.%N)"
 
 # Disable warnings about not being able to follow source includes.
@@ -101,6 +104,7 @@ alias gr='git reset'
 alias grh='git reset --hard'
 alias gs='git status'
 alias gup='git push'
+alias gupnv='git push --no-verify'
 
 # Home and system git directories, for tracking dotfiles etc.
 export HOME_GIT_DIR="$HOME/home.git"
