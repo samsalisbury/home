@@ -10,3 +10,10 @@ install:
 upgrade-all: BREW_FLAGS :=
 upgrade-all: install
 
+.PHONY: tmux
+tmux: .tmux/reset.conf
+
+.PHONY: .tmux/reset.conf
+.tmux/reset.conf:
+	~/bin/generate-tmux-reset > "$@"
+

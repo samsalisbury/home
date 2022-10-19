@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+SELECTED_TEXT="$(cat -)"
+
+TRIED=()
+
+try() {
+	command -v "$1" > /dev/null 2>&1 && echo -n "$SELECTED_TEXT" | "$@" && { tmux display "Copied! ($SELECTED_TEXT)"; exit 0; }
+	TRIED+=("$1")
+}
+
+try pbcopy
+try xsel --clipboard --input
+try xclip -selection clipboard
+
+tmux display "ERROR: Unable to copy - tried these commands: ${TRIED[*]}"
+exit 1
