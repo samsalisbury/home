@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+log() { $QUIET && return 0; echo "$*" 1>&2; }
+die() { QUIET=false log "FATAL: $*"; exit 1; }
+
+trap 'main "$@"' EXIT
+
+THIS_SCRIPT="$0"
+ITUNES_API="https://itunes.apple.com/search"
+CACHE_ROOT="$TMPDIR/home/bin/app-store-query"
+
+# Flag options.
+JSON=false
+PLIST=false
+RAW=false
+QUIET=false
+
+main() {
+	run_subcommand_and_exit "$@"
+	die "$(usage)"
+}
+
+run_subcommand_and_exit() { local NAME="$1"; shift
+	local ARGS=()
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+			-j|--json)
+				JSON=true; shift
+				;;
+			-p|--plist)
+				PLIST=true; shift
+				;;
+			-r|--raw)
+				RAW=true; shift
+				;;
+			-q|--quiet)
+				QUIET=true; shift
+				;;
+			*)
+				ARGS+=("$1"); shift
+				;;
+		esac
+	done
+	set -- "${ARGS[@]}"
+	$JSON && $PLIST && die "You can only specify json or plist, not both."
+	func_exists "cmd_$NAME" || die "No subcommand named '$NAME'"
+	"cmd_$NAME" "$@"; exit $?
+}
+
+cmd_search() { local TERM="$1" URL=""
+	URL="$(search_url "$TERM")"
+	get "$URL"
+}
+
+get() { local URL="$1" RESULT="" STATUS="OK" FROM=""
+	log "GET $URL"
+	export RESULT STATUS
+	trap 'present "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
+	RESULT="$(load_from_cache "$URL")" && FROM="cache" && return 0 
+	RESULT="$(curl -fq "$URL")" || { STATUS="Failed"; return 1; }
+	save_to_cache "$URL" "$RESULT"
+}
+
+present() {
+	$RAW   && echo "$1"
+	$JSON  && jq . <<< "$1"
+	$PLIST && plutil -convert xml1 - -o - <<< "$1"
+}
+
+save_to_cache() { local URL="$1" RESULT="$2"
+	CACHE="$(url_cache_path "$URL")"
+	echo "$RESULT" > "$CACHE" && return 0
+	log "Failed to cache result."
+	return 1
+}
+
+load_from_cache() { local URL="$1"
+	CACHE="$(url_cache_path "$URL")"
+	[[ -f "$CACHE" ]] && cat "$CACHE" && log "Loaded from cache: $CACHE" && return 0
+	return 1
+}
+
+url_cache_path() { local URL="$1" CACHE_PATH=""
+	CACHE_PATH="$CACHE_ROOT/$(digest "$URL")"
+	mkdir -p "$(dirname "$CACHE_PATH")"
+	echo "$CACHE_PATH"
+}
+
+digest() { local STRING="$1"
+	sha256sum <<< "$STRING" | cut -d' ' -f1
+}
+
+func_exists() { local NAME="$1"; [[ $(type -t "$NAME") == function ]]; }
+
+usage() {
+	echo "Search the uk app store: $THIS_SCRIPT search <term>"
+}
+
+search_url() { local TERM="$1" COUNTRY="gb" ENTITY="software" QUERY=""
+	QUERY="$(printf "term=%s&country=%s&entity=%s" \
+		"$TERM" \
+		"$COUNTRY" \
+		"$ENTITY" \
+	)"
+	echo "${ITUNES_API}?${QUERY}"
+}
