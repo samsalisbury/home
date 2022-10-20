@@ -2,8 +2,12 @@
 
 set -Eeuo pipefail
 
-log() { $QUIET && return 0; echo "$*" 1>&2; }
-die() { QUIET=false log "FATAL: $*"; exit 1; }
+_log() { echo "$*" 1>&2; }
+
+log() { $VERBOSE || return 0; $QUIET && return 0; _log "--> $*"; }
+info() { $QUIET && return 0; _log "--> $*"; }
+err() { _log "--> ERROR: $*"; }
+die() { _log "--> FATAL: $*"; exit 1; }
 
 trap 'main "$@"' EXIT
 
@@ -16,14 +20,25 @@ JSON=false
 PLIST=false
 RAW=false
 QUIET=false
+VERBOSE=false
+REFRESH=false
 
 MAX_AGE_MINUTES=20
 MAX_AGE_SECONDS=$(( 60 * MAX_AGE_MINUTES ))
 
 main() {
+	[[ $# -gt 1 ]] || die_usage
 	run_subcommand_and_exit "$@"
 	die "$(usage)"
 }
+
+usage() {
+	echo "Search the uk app store"
+	echo "Usage:"
+	echo "  $(basename "$THIS_SCRIPT") search <term>"
+}
+
+die_usage() { _log "$(usage)"; exit 1; }
 
 run_subcommand_and_exit() { local NAME="$1"; shift
 	local ARGS=()
@@ -38,8 +53,14 @@ run_subcommand_and_exit() { local NAME="$1"; shift
 			-r|--raw)
 				RAW=true; shift
 				;;
+			-R|--refresh)
+				REFRESH=true; shift
+				;;
 			-q|--quiet)
 				QUIET=true; shift
+				;;
+			-v|--verbose)
+				VERBOSE=true; shift
 				;;
 			*)
 				ARGS+=("$1"); shift
@@ -54,13 +75,13 @@ run_subcommand_and_exit() { local NAME="$1"; shift
 
 cmd_search() { local TERM="$1" URL=""
 	URL="$(search_url "$TERM")"
-	get "$URL"
+	get "$URL" present_searchresults
 }
 
-get() { local URL="$1" RESULT="" STATUS="OK" FROM=""
+get() { local URL="$1" PRESENTER="$2" RESULT="" STATUS="OK" FROM=""
 	log "GET $URL"
 	export RESULT STATUS
-	trap 'present "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
+	trap '$PRESENTER "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
 	FROM=cache
 	RESULT="$(load_from_cache "$URL")" && return 0 
 	FROM=web
@@ -68,7 +89,7 @@ get() { local URL="$1" RESULT="" STATUS="OK" FROM=""
 	save_to_cache "$URL" "$RESULT"
 }
 
-present() {
+present_searchresults() {
 	$RAW   && { echo "$1"; return; }
 	$JSON  && { jq . <<< "$1"; return; }
 	$PLIST && { plutil -convert xml1 - -o - <<< "$1"; return; }
@@ -88,6 +109,10 @@ save_to_cache() { local URL="$1" RESULT="$2"
 }
 
 load_from_cache() { local URL="$1" AGE_SECONDS
+	$REFRESH && {
+		log "Skipping cache check - refresh requqested."
+		return 1
+	}
 	CACHE="$(url_cache_path "$URL")"
 	[[ ! -f "$CACHE" ]] && return 1
 	AGE_SECONDS="$(($(date +%s) - $(date -r "$CACHE" +%s)))"
@@ -95,7 +120,7 @@ load_from_cache() { local URL="$1" AGE_SECONDS
 		log "Cache expired: $CACHE"
 		return 1
 	}
-	cat "$CACHE" && { log "Loaded from cache: $CACHE"; return 0; }
+	cat "$CACHE" && { log "Loaded from cache (${AGE_SECONDS}s old): $CACHE"; return 0; }
 	return 1
 }
 
@@ -110,10 +135,6 @@ digest() { local STRING="$1"
 }
 
 func_exists() { local NAME="$1"; [[ $(type -t "$NAME") == function ]]; }
-
-usage() {
-	echo "Search the uk app store: $THIS_SCRIPT search <term>"
-}
 
 search_url() { local TERM="$1" COUNTRY="gb" MEDIA="software" ENTITY="software" QUERY=""
 	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s" \
