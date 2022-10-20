@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+echo "Hello World"
+
+docker ps -aq --no-trunc | xargs docker kill
