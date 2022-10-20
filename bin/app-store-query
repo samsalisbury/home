@@ -17,6 +17,9 @@ PLIST=false
 RAW=false
 QUIET=false
 
+MAX_AGE_MINUTES=20
+MAX_AGE_SECONDS=$(( 60 * MAX_AGE_MINUTES ))
+
 main() {
 	run_subcommand_and_exit "$@"
 	die "$(usage)"
@@ -58,15 +61,23 @@ get() { local URL="$1" RESULT="" STATUS="OK" FROM=""
 	log "GET $URL"
 	export RESULT STATUS
 	trap 'present "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
-	RESULT="$(load_from_cache "$URL")" && FROM="cache" && return 0 
-	RESULT="$(curl -fq "$URL")" || { STATUS="Failed"; return 1; }
+	FROM=cache
+	RESULT="$(load_from_cache "$URL")" && return 0 
+	FROM=web
+	RESULT="$(curl -f --silent --show-error "$URL")" || { STATUS="Failed"; return 1; }
 	save_to_cache "$URL" "$RESULT"
 }
 
 present() {
-	$RAW   && echo "$1"
-	$JSON  && jq . <<< "$1"
-	$PLIST && plutil -convert xml1 - -o - <<< "$1"
+	$RAW   && { echo "$1"; return; }
+	$JSON  && { jq . <<< "$1"; return; }
+	$PLIST && { plutil -convert xml1 - -o - <<< "$1"; return; }
+	{
+		echo $'App ID\tName\tDeveloper\tWebsite'
+		echo $'------\t----\t---------\t-------'
+		echo "$1" | jq -r \
+		'.results[] | "\(.trackId)\t\(.trackName)\t\(.artistName)\t\(.sellerUrl // "-")"'
+	} |	column -t -s$'\t'
 }
 
 save_to_cache() { local URL="$1" RESULT="$2"
@@ -76,9 +87,15 @@ save_to_cache() { local URL="$1" RESULT="$2"
 	return 1
 }
 
-load_from_cache() { local URL="$1"
+load_from_cache() { local URL="$1" AGE_SECONDS
 	CACHE="$(url_cache_path "$URL")"
-	[[ -f "$CACHE" ]] && cat "$CACHE" && log "Loaded from cache: $CACHE" && return 0
+	[[ ! -f "$CACHE" ]] && return 1
+	AGE_SECONDS="$(($(date +%s) - $(date -r "$CACHE" +%s)))"
+	[[ "$AGE_SECONDS" -gt "$MAX_AGE_SECONDS" ]] && {
+		log "Cache expired: $CACHE"
+		return 1
+	}
+	cat "$CACHE" && { log "Loaded from cache: $CACHE"; return 0; }
 	return 1
 }
 
@@ -98,10 +115,11 @@ usage() {
 	echo "Search the uk app store: $THIS_SCRIPT search <term>"
 }
 
-search_url() { local TERM="$1" COUNTRY="gb" ENTITY="software" QUERY=""
-	QUERY="$(printf "term=%s&country=%s&entity=%s" \
+search_url() { local TERM="$1" COUNTRY="gb" MEDIA="software" ENTITY="software" QUERY=""
+	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s" \
 		"$TERM" \
 		"$COUNTRY" \
+		"$MEDIA" \
 		"$ENTITY" \
 	)"
 	echo "${ITUNES_API}?${QUERY}"
