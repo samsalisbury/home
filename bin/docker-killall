@@ -2,6 +2,4 @@
 
 set -Eeuo pipefail
 
-echo "Hello World"
-
-docker ps -aq --no-trunc | xargs docker kill
+docker ps -q --no-trunc | xargs docker kill
