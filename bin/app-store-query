@@ -4,15 +4,16 @@ set -Eeuo pipefail
 
 _log() { echo "$*" 1>&2; }
 
-log() { $VERBOSE || return 0; $QUIET && return 0; _log "--> $*"; }
-info() { $QUIET && return 0; _log "--> $*"; }
-err() { _log "--> ERROR: $*"; }
-die() { _log "--> FATAL: $*"; exit 1; }
+debug() { $DEBUG || return 0; _log "--> DEBUG: %*"; }
+log()   { ($VERBOSE || $DEBUG) || return 0; $QUIET && return 0; _log "--> $*"; }
+info()  { $QUIET && return 0; _log "--> $*"; }
+err()   { _log "--> ERROR: $*"; return 1; }
+die()   { _log "--> FATAL: $*"; exit 1; }
 
 trap 'main "$@"' EXIT
 
 THIS_SCRIPT="$0"
-ITUNES_API="https://itunes.apple.com/search"
+ITUNES_API="https://itunes.apple.com"
 CACHE_ROOT="$TMPDIR/home/bin/app-store-query"
 
 # Flag options.
@@ -21,10 +22,25 @@ PLIST=false
 RAW=false
 QUIET=false
 VERBOSE=false
+DEBUG=false
 REFRESH=false
 
 MAX_AGE_MINUTES=20
 MAX_AGE_SECONDS=$(( 60 * MAX_AGE_MINUTES ))
+
+
+# If util-linux is installed via homebrew, then use that column command.
+COLUMN="$(brew list util-linux | grep -F 'bin/column' 2> /dev/null)" || {
+	COLUMN="$(which column)"
+}
+
+# Test column command...
+$COLUMN --table -T1 <<< "" > /dev/null 2>&1 || {
+	die "Column command from util-linux required; try 'brew install util-linux'"
+}
+
+# Wrap call to column in a function to make it seamless below.
+column() { $COLUMN "$@"; }
 
 main() {
 	[[ $# -gt 1 ]] || die_usage
@@ -53,6 +69,9 @@ run_subcommand_and_exit() { local NAME="$1"; shift
 			-r|--raw)
 				RAW=true; shift
 				;;
+			-d|--debug)
+				DEBUG=true; shift
+				;;
 			-R|--refresh)
 				REFRESH=true; shift
 				;;
@@ -73,20 +92,24 @@ run_subcommand_and_exit() { local NAME="$1"; shift
 	"cmd_$NAME" "$@"; exit $?
 }
 
+
+#
+# Search command
+#
+
 cmd_search() { local TERM="$1" URL=""
 	URL="$(search_url "$TERM")"
 	get "$URL" present_searchresults
 }
 
-get() { local URL="$1" PRESENTER="$2" RESULT="" STATUS="OK" FROM=""
-	log "GET $URL"
-	export RESULT STATUS
-	trap '$PRESENTER "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
-	FROM=cache
-	RESULT="$(load_from_cache "$URL")" && return 0 
-	FROM=web
-	RESULT="$(curl -f --silent --show-error "$URL")" || { STATUS="Failed"; return 1; }
-	save_to_cache "$URL" "$RESULT"
+search_url() { local TERM="$1" COUNTRY="gb" MEDIA="software" ENTITY="software" QUERY=""
+	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s" \
+		"$TERM" \
+		"$COUNTRY" \
+		"$MEDIA" \
+		"$ENTITY" \
+	)"
+	echo "${ITUNES_API}/search?${QUERY}"
 }
 
 present_searchresults() {
@@ -98,7 +121,57 @@ present_searchresults() {
 		echo $'------\t----\t---------\t-------'
 		echo "$1" | jq -r \
 		'.results[] | "\(.trackId)\t\(.trackName)\t\(.artistName)\t\(.sellerUrl // "-")"'
-	} |	column -t -s$'\t'
+	} |	column -t -T2,3,4 -s$'\t'
+}
+
+
+#
+# Details command
+#
+
+cmd_details() { local ID="$1" URL
+	debug "ID=$ID"
+	[[ "$ID" =~ [0-9]+ ]] || ID="$(id_of_first_result "$ID")"
+	URL="$(details_url "$ID")"
+
+	get "$URL" present_details
+}
+
+details_url() { local ID="$1" QUERY
+	QUERY="$(printf "id=%s" "$ID")"
+	echo "${ITUNES_API}/lookup?${QUERY}"
+}
+
+present_details() {
+	$RAW   && { echo "$1"; return; }
+	$JSON  && { jq . <<< "$1"; return; }
+	$PLIST && { plutil -convert xml1 - -o - <<< "$1"; return; }
+	echo "$1" | jq -r '.results[0] | "Name:\t\(.trackName)\nSeller:\t\(.sellerName)\nVersion:\t\(.version)\nLast Release Date:\t\(.currentVersionReleaseDate)\nBundle ID:\t\(.bundleId)\nID:\t\(.trackId)"' | column -t -s$'\t'
+}
+
+
+#
+#
+# Internals
+#
+#
+
+id_of_first_result() { local TERM="$1" ID
+	ID="$( export RAW=true; cmd_search "$TERM" | jq -r '.results[].trackId' | head -n1; )" || die "Couldn't find ID for '$TERM'"
+	log "$TERM -> $ID"
+	echo "$ID"
+}
+
+
+get() { local URL="$1" PRESENTER="$2" RESULT="" STATUS="OK" FROM=""
+	log "GET $URL"
+	export RESULT STATUS
+	trap '$PRESENTER "$RESULT"; log "$STATUS: Loaded from $FROM" && trap - RETURN' RETURN
+	FROM=cache
+	RESULT="$(load_from_cache "$URL")" && return 0 
+	FROM=web
+	RESULT="$(req "$URL")" || { STATUS="Failed"; return 1; }
+	save_to_cache "$URL" "$RESULT"
 }
 
 save_to_cache() { local URL="$1" RESULT="$2"
@@ -110,7 +183,7 @@ save_to_cache() { local URL="$1" RESULT="$2"
 
 load_from_cache() { local URL="$1" AGE_SECONDS
 	$REFRESH && {
-		log "Skipping cache check - refresh requqested."
+		log "Skipping cache check - refresh requested."
 		return 1
 	}
 	CACHE="$(url_cache_path "$URL")"
@@ -136,12 +209,8 @@ digest() { local STRING="$1"
 
 func_exists() { local NAME="$1"; [[ $(type -t "$NAME") == function ]]; }
 
-search_url() { local TERM="$1" COUNTRY="gb" MEDIA="software" ENTITY="software" QUERY=""
-	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s" \
-		"$TERM" \
-		"$COUNTRY" \
-		"$MEDIA" \
-		"$ENTITY" \
-	)"
-	echo "${ITUNES_API}?${QUERY}"
+req() { local URL="$1" CURL_FLAGS=(-f --silent --show-error --location)
+	$DEBUG || CURL_FLAGS+=()
+	$DEBUG && CURL_FLAGS+=(-D /dev/stderr)
+	curl "${CURL_FLAGS[@]}" "$URL"
 }
