@@ -24,6 +24,7 @@ QUIET=false
 VERBOSE=false
 DEBUG=false
 REFRESH=false
+MAX_RESULTS=10
 
 MAX_AGE_MINUTES=20
 MAX_AGE_SECONDS=$(( 60 * MAX_AGE_MINUTES ))
@@ -81,6 +82,9 @@ run_subcommand_and_exit() { local NAME="$1"; shift
 			-v|--verbose)
 				VERBOSE=true; shift
 				;;
+			-n|--max-results)
+				MAX_RESULTS="$2"; shift 2
+				;;
 			*)
 				ARGS+=("$1"); shift
 				;;
@@ -103,11 +107,12 @@ cmd_search() { local TERM="$1" URL=""
 }
 
 search_url() { local TERM="$1" COUNTRY="gb" MEDIA="software" ENTITY="software" QUERY=""
-	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s" \
+	QUERY="$(printf "term=%s&country=%s&&media=%s&entity=%s&limit=%s" \
 		"$TERM" \
 		"$COUNTRY" \
 		"$MEDIA" \
 		"$ENTITY" \
+		"$MAX_RESULTS" \
 	)"
 	echo "${ITUNES_API}/search?${QUERY}"
 }
