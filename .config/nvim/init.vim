@@ -60,35 +60,20 @@ call plug#begin()
 
 call plug#end()
 
-let g:gruvbox_contrast_dark = 'hard'
-"colorscheme gruvbox " Default in case dark mode detection fails.
-
-"" Ensure matching brace highlighting not more attention grabbing than
-"" actual cursor.
-augroup FixHighlighting
-	autocmd!
-	autocmd ColorScheme github highlight MatchParen cterm=bold ctermbg=lightyellow ctermfg=darkgrey
-	autocmd ColorScheme github highlight StatusLine cterm=bold ctermbg=white ctermfg=darkgrey
-	autocmd ColorScheme molokai highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow
-augroup END
-
 """ Dark Mode handling
-let s:darkModeEnabled = "NOT_SET"
 function! Dark()
+	set background=dark
 	colorscheme molokai
-	if s:darkModeEnabled == "YES"
-		return
-	endif
-	let s:darkModeEnabled = "YES"
+	highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow
+	redraw
 endfunction
 command! Dark call Dark()
 
 function! Light() abort
+	set background=light
 	colorscheme github
-	if s:darkModeEnabled == "NO"
-		return
-	endif
-	let s:darkModeEnabled = "NO"
+	highlight StatusLine cterm=bold ctermbg=white ctermfg=darkgrey
+	redraw
 endfunction
 command! Light call Light()
 
@@ -108,6 +93,11 @@ function! AutoDarkMode(...) " The ... allows swallowing the timer ID passed by t
 	endif
 endfunction
 command! AutoDarkMode call AutoDarkMode()
+
+autocmd Signal SIGUSR1 call AutoDarkMode()
+
+let g:gruvbox_contrast_dark = 'hard'
+colorscheme github " Default in case dark mode detection fails.
 
 """ general defaults
 syntax on
@@ -199,3 +189,5 @@ set completeopt-=preview
 
 """ Trim trailing whitespace before save.
 autocmd FileType go,json,js,yaml,yml,bash,bats,hcl,py,c,cpp,java,php autocmd BufWritePre <buffer> %s/\s\+$//e
+
+call AutoDarkMode()

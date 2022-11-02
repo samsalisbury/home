@@ -7,6 +7,9 @@ mkdir -p "$(dirname "$PALETTE_STATE")"
 # system-palette tells tmux to copy the system's color palette if possible,
 # or to continue to respect the currently manually set pallette otherwise.
 system-palette() {
+	local PALETTE
+	# AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
+	# it returns "Dark". We return "Light" when it should be light.
 	PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || \
 		cat "$PALETTE_STATE" || \
 		echo Light)"
@@ -14,13 +17,54 @@ system-palette() {
 	[ "$PALETTE" = "Light" ] && light
 }
 
-OSA_SCRIPT='tell application "System Events"'
-OSA_SCRIPT+='to tell appearance preferences to set dark mode to'
-
 set_macos_pallete() {
-	[ "$1" = "dark" ] && MAC_MODE="true"
-	[ "$1" = "light" ] && MAC_MODE="false"
-	osascript -e "$OSA_SCRIPT $MAC_MODE"
+	local MODE="$1" MAC_MODE
+	[ "$MODE" = "dark" ] && MAC_MODE="true"
+	[ "$MODE" = "light" ] && MAC_MODE="false"
+	osascript - <<-EOF
+		tell application "System Events"
+			tell appearance preferences
+				set dark mode to $MAC_MODE
+			end tell
+		end tell
+	EOF
+}
+
+set_terminal_pallete() {
+	echo "$MODE" > "$PALETTE_STATE"
+
+	# Tell all nvims to update appearance.
+	# shellcheck disable=SC2086
+	for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
+
+	local WINDOW_STYLE="bg=$BG fg=$FG"
+
+	# Write a config snippet for .tmux.conf to source. This avoids having to run a
+	# shell command to set the color _after_ the pane has loaded, thus avoiding the
+	# white flash.
+	cat <<-EOF > "$PALETTE_STATE_TMUX"
+		set -g window-style '$WINDOW_STYLE'
+		set -g pane-border-style 'bg=$BG fg=$BORDER'
+		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
+
+		set  window-style '$WINDOW_STYLE'
+		set  pane-border-style 'bg=$BG fg=$BORDER'
+		set  pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
+	EOF
+
+	tmux source-file "$PALETTE_STATE_TMUX"
+
+	ORIG_WINDOW="$(tmux display-message -p '#I')"
+	for W in $(tmux list-windows -a -F '#{window_id}'); do
+		tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
+	done
+	tmux select-window -t "$ORIG_WINDOW"
+
+	## Update all the currently-open panes to the right colour palette.
+	PANES="$(tmux list-panes -a -F '#{pane_id}')"
+	for PANE in $PANES; do
+		tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
+	done
 }
 
 maclight() {
@@ -40,7 +84,7 @@ light() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	set_terminal_pallete
-	match-brightness
+	match-brightness || true
 }
 
 # light sets tmux to dark mode.
@@ -52,28 +96,5 @@ dark() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	set_terminal_pallete
-	match-brightness
-}
-
-set_terminal_pallete() {
-	echo "$MODE" > "$PALETTE_STATE"
-
-	WINDOW_STYLE="bg=$BG fg=$FG"
-
-	# Write a config snippet for .tmux.conf to source. This avoids having to run a
-	# shell command to set the color _after_ the pane has loaded, thus avoiding the
-	# white flash.
-	echo "set -g window-style '$WINDOW_STYLE'" > "$PALETTE_STATE_TMUX"
-
-	# Update current tmux chrome.
-	tmux set window-style             "$WINDOW_STYLE"
-	tmux set pane-border-style        "bg=$BG fg=$BORDER"
-	tmux set pane-active-border-style "bg=$BG fg=$HIGHLIGHT"
-	
-	# Update all the currently-open panes to the right colour palette.
-	#PANES="$(tmux list-panes -a -F '#{pane_id}')"
-	#for PANE in $PANES; do
-	#	:
-	#	#tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
-	#done
+	match-brightness || true
 }
