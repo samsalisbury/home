@@ -1,4 +1,6 @@
 
+set t_Co=256
+
 let g:python3_host_prog = '$HOME/.pyenv/versions/py3nvim/bin/python'
 
 " plug_version 8fdabfba0b5a1b0616977a32d9e04b4b98a6016a is from May 2022
@@ -15,6 +17,9 @@ call plug#begin()
 
 	" General enhancement plugins
 	Plug 'tpope/vim-obsession'
+	Plug 'vim-airline/vim-airline'
+	Plug 'vim-airline/vim-airline-themes'
+	Plug 'airblade/vim-gitgutter'
 
 	" Themes
 	Plug 'cormacrelf/vim-colors-github'
@@ -65,6 +70,7 @@ function! Dark()
 	set background=dark
 	colorscheme molokai
 	highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow
+	execute 'AirlineTheme dark'
 	redraw
 endfunction
 command! Dark call Dark()
@@ -73,6 +79,7 @@ function! Light() abort
 	set background=light
 	colorscheme github
 	highlight StatusLine cterm=bold ctermbg=white ctermfg=darkgrey
+	execute 'AirlineTheme light'
 	redraw
 endfunction
 command! Light call Light()
@@ -94,10 +101,23 @@ function! AutoDarkMode(...) " The ... allows swallowing the timer ID passed by t
 endfunction
 command! AutoDarkMode call AutoDarkMode()
 
-autocmd Signal SIGUSR1 call AutoDarkMode()
+" Call AutoDarkMode once vim is launched (after plugins loaded).
+autocmd VimEnter * AutoDarkMode
+
+if has('nvim')
+	autocmd Signal SIGUSR1 call AutoDarkMode()
+else
+	autocmd SigUSR1 * call AutoDarkMode()
+endif
 
 let g:gruvbox_contrast_dark = 'hard'
 colorscheme github " Default in case dark mode detection fails.
+
+let g:airline_statusline_ontop=0
+let g:airline_powerline_fonts = 0
+if has('nvim')
+	set cmdheight=0
+endif
 
 """ general defaults
 syntax on
@@ -190,4 +210,3 @@ set completeopt-=preview
 """ Trim trailing whitespace before save.
 autocmd FileType go,json,js,yaml,yml,bash,bats,hcl,py,c,cpp,java,php autocmd BufWritePre <buffer> %s/\s\+$//e
 
-call AutoDarkMode()
