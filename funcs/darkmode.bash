@@ -57,17 +57,28 @@ set_terminal_palette() {
 
 	tmux source-file "$PALETTE_STATE_TMUX"
 
+	# Set the style for each open window first.
 	ORIG_WINDOW="$(tmux display-message -p '#I')"
 	for W in $(tmux list-windows -a -F '#{window_id}'); do
 		tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
 	done
 	tmux select-window -t "$ORIG_WINDOW"
 
+	ORIG_PANE="$TMUX_PANE"
+	ORIG_ZOOMED=false
+	if tmux list-panes -F '#{window_zoomed_flag}' | grep -F -q 1; then
+		ORIG_ZOOMED=true
+	fi
+
 	## Update all the currently-open panes to the right colour palette.
 	PANES="$(tmux list-panes -a -F '#{pane_id}')"
 	for PANE in $PANES; do
 		tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
 	done
+
+	tmux select-pane -t "$ORIG_PANE"
+	$ORIG_ZOOMED && tmux resize-pane -Z
+
 }
 
 maclight() {
