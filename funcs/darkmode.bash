@@ -5,7 +5,7 @@ export PALETTE_STATE_TMUX="$PALETTE_STATE_DIR/tmux-palette.conf"
 mkdir -p "$(dirname "$PALETTE_STATE")"
 
 # system-palette tells tmux to copy the system's color palette if possible,
-# or to continue to respect the currently manually set pallette otherwise.
+# or to continue to respect the currently manually set palette otherwise.
 system-palette() {
 	local PALETTE
 	# AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
@@ -17,7 +17,7 @@ system-palette() {
 	[ "$PALETTE" = "Light" ] && light
 }
 
-set_macos_pallete() {
+set_macos_palette() {
 	local MODE="$1" MAC_MODE
 	[ "$MODE" = "dark" ] && MAC_MODE="true"
 	[ "$MODE" = "light" ] && MAC_MODE="false"
@@ -30,7 +30,7 @@ set_macos_pallete() {
 	EOF
 }
 
-set_terminal_pallete() {
+set_terminal_palette() {
 	echo "$MODE" > "$PALETTE_STATE"
 
 	# Tell all nvims to update appearance.
@@ -46,6 +46,9 @@ set_terminal_pallete() {
 		set -g window-style '$WINDOW_STYLE'
 		set -g pane-border-style 'bg=$BG fg=$BORDER'
 		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
+
+		set -g status-style fg=$STATUS_FG,bold,bg=$STATUS_BG
+		setw -g window-status-current-style fg=$STATUS_SELECTED
 
 		set  window-style '$WINDOW_STYLE'
 		set  pane-border-style 'bg=$BG fg=$BORDER'
@@ -68,11 +71,11 @@ set_terminal_pallete() {
 }
 
 maclight() {
-	set_macos_pallete light
+	set_macos_palette light
 }
 
 macdark() {
-	set_macos_pallete dark
+	set_macos_palette dark
 }
 
 # light sets tmux to light mode.
@@ -83,7 +86,10 @@ light() {
 	FG="#171717"
 	BORDER=green
 	HIGHLIGHT=magenta
-	set_terminal_pallete
+	STATUS_BG=green
+	STATUS_FG=brightwhite
+	STATUS_SELECTED="#FFFFFF"
+	set_terminal_palette
 	match-brightness || true
 }
 
@@ -91,10 +97,13 @@ light() {
 dark() {
 	macdark
 	MODE=Dark
-	BG="#171717"
+	BG="#121212"
 	FG="#99FF33"
 	BORDER=green
 	HIGHLIGHT=magenta
-	set_terminal_pallete
+	STATUS_BG=green
+	STATUS_FG=darkgreen
+	STATUS_SELECTED=black
+	set_terminal_palette
 	match-brightness || true
 }
