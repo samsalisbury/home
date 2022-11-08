@@ -1,6 +1,69 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+VERBOSE="${VERBOSE:-1}"
+DEBUG="${DEBUG:-0}"
+
+verbose() { enabled VERBOSE || debugging; }
+_log() { echo "$*" 1>&2; }
+_print() { echo -n "$*" 1>&2; }
+log() { verbose && _log "==> $*"; }
+# log_output writes one line. The first arg is on stderr, the remaining on stdout.
+log_output() { _print "==> $1"; shift; echo "$*"; }
+die() { _log "FATAL: $*"; exit 1; }
+debugging() { enabled DEBUG; }
+debug() { if debugging; then _log "DEBUG: $*"; fi; }
+enabled() { [[ "${!1:-,,}" =~ 1|true|y|yes ]]; }
+run() {
+	debug "Running $*"
+	if ! "$@"; then
+		_log "Command failed: $*"
+	fi
+}
+
+is_in_array() { local WHAT="$1"; shift
+	for E; do [[ "$E" == "$WHAT" ]] && return 0; done
+	return 1
+}
+
 MAIN=main
 
-set -euo pipefail
-git branch --merged "$MAIN" --format='%(refname:lstrip=2)' | grep -Ev "^$MAIN\$"
+# MERGED contains branches that have actually been merged.
+MERGED_LIST="$(git branch --merged "$MAIN" --format='%(refname:lstrip=2)' | grep -Ev "^$MAIN\$" || true)"
+read -ra MERGED <<< "$MERGED_LIST"
+
+DIR="$TMPDIR/.git-merged/$(basename "$PWD")"
+
+debug "Working in $DIR"
+
+run rm -rf "$DIR"
+run mkdir -p "$DIR"
+
+run cp -R . "$DIR/"
+
+#trap EXIT rm -rf "$DIR"
+
+run cd "$DIR" || die "Couldn't cd to $DIR"
+
+BRANCH_FILES="$(find .git/refs/heads/ -mindepth 1 -maxdepth 1)"
+
+for F in $BRANCH_FILES; do
+	BRANCH="$(basename "$F")"
+	# Never check main against itself...
+	if [[ "$BRANCH" == "$MAIN" ]]; then continue; fi
+	if is_in_array "$BRANCH" "${MERGED[@]}" "$MAIN"; then
+		log "Skipping squash-merge check of actually-merged branch $BRANCH"
+		echo "$BRANCH"
+		continue
+	fi
+	run git reset -q --hard
+	run git checkout -qB "git-merged/test/$BRANCH" "$MAIN"
+	run git reset -q --hard "$MAIN"
+	run git merge -q -m "git-merged: test: $BRANCH -> $MAIN" "$BRANCH" > /dev/null 2>&1 || continue
+	DIFF_CHAR_COUNT="$(run git diff HEAD "$MAIN" | wc -c | xargs)"
+	if [[ "$DIFF_CHAR_COUNT" -eq 0 ]]; then
+		log_output "✅ " "$BRANCH"
+	else
+		log "❌ $BRANCH"
+	fi
+done
