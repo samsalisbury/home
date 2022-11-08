@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Add Touch Icons to Safari's cache (for start page links).
+
+DIR="$HOME/Library/Safari/Touch Icons Cache/Images"
+
+ICONDIR=images/websites
+
+for PNG in "$ICONDIR"/*.png; do 
+	HOST="$(basename "${PNG%.png}")"
+	HASH="$(md5 -q -s "$HOST" | tr '[:lower:]' '[:upper:]')"
+	echo "$HOST -> ${HASH}.png"
+	cp -f "$PNG" "$DIR/${HASH}.png"
+done
