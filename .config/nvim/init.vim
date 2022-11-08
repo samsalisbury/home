@@ -13,6 +13,12 @@ if empty(glob(data_dir . '/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
+if has('nvim')
+	" do nothing
+else
+	pythonx import pynvim
+endif
+
 call plug#begin()
 
 	" General enhancement plugins
@@ -70,7 +76,10 @@ function! Dark()
 	set background=dark
 	colorscheme molokai
 	highlight MatchParen cterm=bold ctermbg=black ctermfg=lightyellow
-	execute 'AirlineTheme dark'
+	try
+		execute 'AirlineTheme dark'
+	catch
+	endtry
 	redraw
 endfunction
 command! Dark call Dark()
@@ -79,7 +88,10 @@ function! Light() abort
 	set background=light
 	colorscheme github
 	highlight StatusLine cterm=bold ctermbg=white ctermfg=darkgrey
-	execute 'AirlineTheme light'
+	try
+		execute 'AirlineTheme light'
+	catch
+	endtry
 	redraw
 endfunction
 command! Light call Light()
@@ -101,7 +113,12 @@ function! AutoDarkMode(...) " The ... allows swallowing the timer ID passed by t
 endfunction
 command! AutoDarkMode call AutoDarkMode()
 
-" Call AutoDarkMode once vim is launched (after plugins loaded).
+" Call AutoDarkMode immediately to avoid the black flash.
+execute 'AutoDarkMode'
+
+" Call AutoDarkMode again vim is launched (after plugins loaded).
+" This allows plugin-related commands in the auto dark mode function
+" to be effective.
 autocmd VimEnter * AutoDarkMode
 
 if has('nvim')
@@ -114,6 +131,7 @@ let g:gruvbox_contrast_dark = 'hard'
 colorscheme github " Default in case dark mode detection fails.
 
 let g:airline_statusline_ontop=0
+let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 0
 if has('nvim')
 	set cmdheight=0
@@ -125,7 +143,7 @@ set wrap
 set number
 set tabstop=4
 set shiftwidth=4
-set backspace=indent,eol,start " Enable 'normal' backspacing.
+"set backspace=indent,eol,start " Enable 'normal' backspacing.
 set signcolumn=yes             " Always show the gutter so errors don't cause line width to change.
 
 if has('nvim')
