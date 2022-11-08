@@ -9,9 +9,9 @@ _log() { if terminal; then echo "$*" 1>&2; fi; }
 _print() { echo -n "$*" 1>&2; }
 # terminal returns true if we're attached to a terminal.
 terminal() { [[ -t 1 ]]; }
-log() { verbose && _log "==> $*"; }
+log() { verbose && _log "$*"; }
 # log_output writes one line. The first arg is on stderr, the remaining on stdout.
-log_output() { if terminal; then _print "==> $1"; fi; shift; echo "$*"; }
+log_output() { if terminal; then _print "$1"; fi; shift; echo "$*"; }
 die() { _log "FATAL: $*"; exit 1; }
 debugging() { enabled DEBUG; }
 debug() { if debugging; then _log "DEBUG: $*"; fi; }
@@ -28,7 +28,7 @@ is_in_array() { local WHAT="$1"; shift
 	return 1
 }
 
-MAIN=main
+MAIN="${1:-main}"
 
 # MERGED contains branches that have actually been merged.
 MERGED_LIST="$(git branch --merged "$MAIN" --format='%(refname:lstrip=2)' | grep -Ev "^$MAIN\$" || true)"
@@ -47,15 +47,14 @@ run cp -R . "$DIR/"
 
 run cd "$DIR" || die "Couldn't cd to $DIR"
 
-BRANCH_FILES="$(find .git/refs/heads/ -mindepth 1 -maxdepth 1)"
+BRANCHES="$(find .git/refs/heads -mindepth 1 -type f | sed -E 's|^.git/refs/heads/(.*)$|\1|')"
 
-for F in $BRANCH_FILES; do
-	BRANCH="$(basename "$F")"
+for BRANCH in $BRANCHES; do
 	# Never check main against itself...
 	if [[ "$BRANCH" == "$MAIN" ]]; then continue; fi
 	if is_in_array "$BRANCH" "${MERGED[@]}" "$MAIN"; then
-		log "Skipping squash-merge check of actually-merged branch $BRANCH"
-		echo "$BRANCH"
+		debug "Skipping squash-merge check of actually-merged branch $BRANCH"
+		log_output "✅ " "$BRANCH"
 		continue
 	fi
 	run git reset -q --hard
