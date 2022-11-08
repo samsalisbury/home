@@ -2,5 +2,11 @@
 
 set -euo pipefail
 
-# shellcheck disable=SC2046
-git branch -d $(git-merged)
+MERGED_BRANCHES="$(git-merged)"
+if [[ -z "$MERGED_BRANCHES" ]]; then
+	echo "No merged branches to delete."
+	exit 0
+fi
+
+# shellcheck disable=SC2086
+git branch -d $MERGED_BRANCHES

@@ -5,11 +5,13 @@ VERBOSE="${VERBOSE:-1}"
 DEBUG="${DEBUG:-0}"
 
 verbose() { enabled VERBOSE || debugging; }
-_log() { echo "$*" 1>&2; }
+_log() { if terminal; then echo "$*" 1>&2; fi; }
 _print() { echo -n "$*" 1>&2; }
+# terminal returns true if we're attached to a terminal.
+terminal() { [[ -t 1 ]]; }
 log() { verbose && _log "==> $*"; }
 # log_output writes one line. The first arg is on stderr, the remaining on stdout.
-log_output() { _print "==> $1"; shift; echo "$*"; }
+log_output() { if terminal; then _print "==> $1"; fi; shift; echo "$*"; }
 die() { _log "FATAL: $*"; exit 1; }
 debugging() { enabled DEBUG; }
 debug() { if debugging; then _log "DEBUG: $*"; fi; }
