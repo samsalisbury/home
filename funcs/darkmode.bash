@@ -17,6 +17,13 @@ system-palette() {
 	[ "$PALETTE" = "Light" ] && light
 }
 
+reload-darkmode() {
+	local NAME
+	NAME="$(basename "${BASH_SOURCE[0]}")"
+	FILEPATH="$HOME/funcs/$NAME"
+	source "$FILEPATH" && echo "$FILEPATH reloaded"
+}
+
 set_macos_palette() {
 	local MODE="$1" MAC_MODE
 	[ "$MODE" = "dark" ] && MAC_MODE="true"
@@ -98,23 +105,24 @@ light() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	STATUS_BG=green
-	STATUS_FG=brightwhite
-	STATUS_SELECTED="#FFFFFF"
+	STATUS_FG=white
+	STATUS_SELECTED="brightwhite"
 	set_terminal_palette
 	match-brightness || true
 }
 
 # light sets tmux to dark mode.
 dark() {
+	local BLACK="#121212"
 	macdark
 	MODE=Dark
-	BG="#121212"
+	BG="$BLACK"
 	FG="#99FF33"
 	BORDER=green
 	HIGHLIGHT=magenta
 	STATUS_BG=green
 	STATUS_FG=darkgreen
-	STATUS_SELECTED=black
+	STATUS_SELECTED="$BLACK"
 	set_terminal_palette
 	match-brightness || true
 }
