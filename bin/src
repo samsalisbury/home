@@ -26,19 +26,23 @@ open_tmux_window() {
 }
 
 SHOULD_OPEN_TMUX_WINDOW=false
+NEW_REPO=false
 
-while getopts ":t" OPT; do
+while getopts ":t:n" OPT; do
 	case $OPT in
 		t)
 			SHOULD_OPEN_TMUX_WINDOW=true
+			shift
+			;;
+		n)
+			NEW_REPO=true
+			shift
 			;;
 		\?)
 			die "Invalid option -$OPTARG"
 			;;
 	esac
 done
-
-shift $((OPTIND-1))
 
 [ -z "$1" ] && {
 	die "usage: $BIN github.com/<user>/<repo>"
@@ -71,6 +75,24 @@ REPO="$HOST_ORG_REPO"
 debug "Got valid repo: REPO=$REPO"
 
 DIR="$SRC_BASEDIR/$REPO"
+
+if $NEW_REPO; then
+	debug "Creating new repo."
+	mkdir -p "$DIR"
+	cd "$DIR" || die "Unable to cd to $DIR"
+	git init
+	git remote add origin "https://$HOST_ORG_REPO"
+	echo "# $REPO" > README.md
+	git add README.md
+	git commit -m "initial commit"
+	BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+	REMOTE="origin"
+	gh repo create "$(basename "$PWD")" --private --source=. --remote="$REMOTE"
+	git push "$REMOTE" "$BRANCH"
+	URL="$(gh repo view --json url | jq -r .url)"
+	log "New repo created at $URL"
+	sleep 1
+fi
 
 debug "Looking in: $DIR"
 
