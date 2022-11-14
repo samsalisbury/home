@@ -1,3 +1,4 @@
 *.orig
 *.swp
 *.vscode/
+.DS_Store
