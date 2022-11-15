@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-set -e
+
+set -Eeuo pipefail
 
 DEFAULT_HOST=github.com
 DEFAULT_ORG=hashicorp
 
-[ -n "$SRC_BASEDIR" ] || SRC_BASEDIR="$HOME/src"
+[ -n "${SRC_BASEDIR:-}" ] || SRC_BASEDIR="$HOME/src"
 
 log() { echo "$@" 1>&2; }
-debug() { [ "$DEBUG" != "YES" ] || log "[DEBUG] $*"; }
+debug() { [ "${DEBUG:-}" != "YES" ] || log "[DEBUG] $*"; }
 die() { log "$@"; exit 1; }
 BIN="$(basename "$0")"
 
@@ -49,7 +50,7 @@ REPO_EXPRESSION="$1"
 
 [[ -z "$REPO_EXPRESSION" ]] && {
 	debug "REPO_EXPRESSION: $REPO_EXPRESSION"
-	die "usage: $BIN [-d] [-t] [-n] [github.com/[<user>/]]<repo>"
+	die "usage: $BIN [-d] [-t] [-n] [github.com/[<user/org>/]]<repo>"
 }
 
 if ! HOST_ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/[^/]+/?$')"; then
@@ -69,10 +70,15 @@ fi
   die "$BIN only supports repos in the format github.com/<user>/<repo>"
 }
 
+exit_trap() {
+	CODE="$?"
+	[[ $CODE = 0 ]] || exit "$CODE"
+	if $SHOULD_OPEN_TMUX_WINDOW; then
+		open_tmux_window "$REPO" "$DIR"
+	fi
+}
 
-if $SHOULD_OPEN_TMUX_WINDOW; then
-	trap 'open_tmux_window "$REPO" "$DIR"' EXIT
-fi
+trap exit_trap EXIT
 
 REPO="$HOST_ORG_REPO"
 
@@ -92,6 +98,7 @@ debug "Looking in: $DIR"
 }
 
 if $NEW_REPO; then
+	OUTPUT="$(gh auth status 2>&1)" || die "Need GitHub credentials: $OUTPUT"
 	debug "Creating new repo."
 	mkdir -p "$DIR"
 	cd "$DIR" || die "Unable to cd to $DIR"
