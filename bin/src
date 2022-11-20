@@ -19,14 +19,14 @@ open_tmux_window() {
 	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
 		send-keys \
 			"clear && " \
-			"$BIN '$REPO' && " \
 			"git log -n3 && echo && " \
 			"git status && echo && " \
 			"git -c color.branch=always branch | sort | tac | head -n10" \
 			Enter
 }
 
-SHOULD_OPEN_TMUX_WINDOW=false
+[[ -z "$TMUX" ]] || SHOULD_OPEN_TMUX_WINDOW=true
+
 NEW_REPO=false
 REPO_EXPRESSION=""
 
@@ -34,6 +34,9 @@ while getopts ":tnd" OPT; do
 	case $OPT in
 		t)
 			SHOULD_OPEN_TMUX_WINDOW=true
+			;;
+		T)
+			SHOULD_OPEN_TMUX_WINDOW=false
 			;;
 		n)
 			NEW_REPO=true
@@ -71,6 +74,7 @@ fi
 }
 
 exit_trap() {
+	trap - EXIT
 	CODE="$?"
 	[[ $CODE = 0 ]] || exit "$CODE"
 	if $SHOULD_OPEN_TMUX_WINDOW; then
