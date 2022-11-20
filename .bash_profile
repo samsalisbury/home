@@ -106,33 +106,14 @@ alias gs='git status'
 alias gup='git push'
 alias gupnv='git push --no-verify'
 
-# Home and system git directories, for tracking dotfiles etc.
-export HOME_GIT_DIR="$HOME/home.git"
-export NIXOS_GIT_DIR="/nixos.git"
-
-# Add 'home' alias to open an interactive subshell configured for managing
-# dotfiles etc via git, in my $HOME directory.
-alias home='/usr/bin/env GIT_DIR=$HOME_GIT_DIR GIT_WORK_TREE=$HOME bash -l'
-alias system='sudo /usr/bin/env HOME=$HOME GIT_DIR=$NIXOS_GIT_DIR GIT_WORK_TREE=/ bash -l'
-# Set up the environment when this profile is loaded in the new subshell.
-if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
-	cd "$HOME" || true
-	export PS1="home.git> $PS1"
+# Git Dotfiles
+source "$HOME/funcs/git-dotfiles.bash"
+git_dotfiles_configure_shell_hook() {
 	# Override 'ga' func to add only modified files by default.
-	ga() { if [ -z "$*" ]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
-	echo "==> Git configured for home directory; Ctrl+D to go back to previous shell."
-fi
-if [ "$GIT_DIR" = "$NIXOS_GIT_DIR" ]; then
-	cd "/" || true
-	if [ ! -d "$GIT_DIR" ]; then
-		git init
-		git config status.showUntrackedFiles no
-	fi
-	export PS1="nixos.git> $PS1"
-	# Override 'ga' func to add only modified files by default.
-	ga() { if [ -z "$*" ]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
-	echo "==> Git configured for nixos root directory; Ctrl+D to go back to previous shell."
-fi
+	ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
+}
+git_dotfiles home "$HOME"
+git_dotfiles system /
 
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
