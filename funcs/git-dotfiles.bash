@@ -37,13 +37,13 @@ _gdf_launch_shell() { local WORKTREE="${1:?}"; CUSTOM_DOT_GIT="${2:?}"
 	# If the worktree is not writable by the current user, we'll launch the shell with sudo...
 	local SUDO
 	[[ -w "$WORKTREE" ]] || SUDO=sudo
-	_gdf_init "$WORKTREE" "$CUSTOM_DOT_GIT" || return 1
+	_gdf_init_repo "$WORKTREE" "$CUSTOM_DOT_GIT" || return 1
 	$SUDO /usr/bin/env GIT_DIR="$CUSTOM_DOT_GIT" GIT_WORK_TREE="$WORKTREE" bash -l
 }
 
-# _gdf_init ensures the worktree is set up as a git repo. It uses subshell semantics
+# _gdf_init_repo ensures the worktree is set up as a git repo. It uses subshell semantics
 # so it doesn't affect the current shell session.
-_gdf_init() ( local WORKTREE="${1:?}" CUSTOM_DOT_GIT="${2:?}"
+_gdf_init_repo() ( local WORKTREE="${1:?}" CUSTOM_DOT_GIT="${2:?}"
 	cd "$WORKTREE" || return "$(_gdf_err "failed to CD to worktree '$WORKTREE'")"
 	export GIT_DIR="$CUSTOM_DOT_GIT"
 	[[ -d "$CUSTOM_DOT_GIT" ]] || {
