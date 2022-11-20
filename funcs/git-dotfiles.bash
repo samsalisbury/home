@@ -13,7 +13,8 @@ _gdf_err() { _gdf_log "error: $*"; echo 1; }
 #
 # E.g.
 #
-#   git_dotfiles home ~/
+#   git_dotfiles home "$HOME"
+#   git_dotfiles system /
 git_dotfiles() { local NAME="${1:?}" WORKTREE="${2:?}"
 	[[ -n "$NAME" ]]     || return "$(_gdf_err "name not specified")"
 	[[ -n "$WORKTREE" ]] || return "$(_gdf_err "worktree not specified")"
