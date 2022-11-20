@@ -7,12 +7,30 @@
 
 set -euo pipefail
 
-DATE="$(date +%Y-%m-%d)"
-NAME="${1:-$DATE}"
-BASEDIR="$HOME/.crap"
+MONTH="$(date +%Y-%m)"
+
+case "${1-:}" in
+	-h|--help)
+		echo "Usage: crap <name> - create a new crap directory and print its path."
+		exit
+		;;
+	-l|--list)
+		tree ~/.crap
+		exit
+		;;
+esac
+
+NAME="${1:?}"
+BASEDIR="$HOME/.crap/$MONTH"
 DIR="$BASEDIR/$NAME"
-[[ -d "$DIR" ]] || {
-	mkdir -p "$DIR"
-	echo "Crap Dir '$NAME' - Created $DATE" > "$DIR/readme.txt"
-}
-echo "$DIR"
+[[ -d "$DIR" ]] || mkdir -p "$DIR"
+
+if [[ -n "${TMUX:-}" ]]; then
+	tmux new-window -a -c "$DIR" -n "CRAP: $(basename "$DIR")"\; \
+		send-keys \
+			"clear && " \
+			"echo 'Crap: $NAME: $MONTH'" \
+			Enter
+else
+	echo "$DIR"
+fi
