@@ -76,7 +76,6 @@ debug "Working in $WORKDIR"
 
 run rm -rf "$WORKDIR"
 run mkdir -p "$WORKDIR"
-
 run cp -R . "$WORKDIR/"
 
 #trap EXIT rm -rf "$WORKDIR"
@@ -85,12 +84,23 @@ run cd "$WORKDIR" || die "Couldn't cd to $WORKDIR"
 
 BRANCHES="$(find $GIT_DIR/refs/heads -mindepth 1 -type f | sed -E "s|^$GIT_DIR/refs/heads/(.*)\$|\1|")"
 
+is_rebased() { local BRANCH="$1" BASE="$2" LOG
+	LOG="$(git log --cherry --pretty=oneline "$BASE...$BRANCH")" || die "Unable to run git log --cherry --pretty=oneline ..."
+	# Search the log for lines not beginning with "="... If there are none
+	# then all commits on this branch are on the base branch so return 0.
+	! grep -Ev '^=' <<< "$LOG" > /dev/null 2>&1
+}
+
 for BRANCH in $BRANCHES; do
 	# Never check main against itself...
 	if [[ "$BRANCH" == "$TARGET_BRANCH" ]]; then continue; fi
 	if is_in_array "$BRANCH" "${MERGED[@]}" "$TARGET_BRANCH"; then
 		debug "Skipping squash-merge check of actually-merged branch $BRANCH"
 		log_output "" "m $BRANCH"
+		continue
+	fi
+	if is_rebased "$BRANCH" "$TARGET_BRANCH" ]]; then
+		log_output "" "r $BRANCH"
 		continue
 	fi
 	run git reset -q --hard HEAD --
