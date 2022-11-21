@@ -41,9 +41,26 @@ setup() {
 
 	run_ok merge_into "a"
 
-	run git merged b
+	run git merged a
 	[[ "$status" -eq 0 ]]
-	[[ "$output" = "m a" ]]
+	[[ "$output" = "m b" ]]
+}
+
+@test "detect rebased" {
+	skip "not implemented"
+	run_ok checkout "a"
+	run_ok write "1a" "a"
+	run_ok write "2a" "a"
+
+	run_ok checkout "b"
+	run_ok write "1b" "b"
+	run_ok write "2b" "b"
+
+	run_ok rebase_onto "a"
+
+	run git merged a
+	[[ "$status" -eq 0 ]]
+	[[ "$output" = "r b" ]] || { echo "GOT: $output"; return 1; }
 }
 
 @test "detect squashed" {
@@ -57,7 +74,7 @@ setup() {
 
 	run_ok squash_onto "a"
 
-	run git merged b
+	run git merged a
 	[[ "$status" -eq 0 ]]
-	[[ "$output" = "s a" ]] || { echo "GOT: $output"; return 1; }
+	[[ "$output" = "s b" ]] || { echo "GOT: $output"; return 1; }
 }
