@@ -28,43 +28,79 @@ is_in_array() { local WHAT="$1"; shift
 	return 1
 }
 
-MAIN="${1:-main}"
+GIT_DIR="${GIT_DIR:-.git}"
 
-# MERGED contains branches that have actually been merged.
-MERGED_LIST="$(git branch --merged "$MAIN" --format='%(refname:lstrip=2)' | grep -Ev "^$MAIN\$" || true)"
+print_branch_if_exists() { local NAME="$1"
+	[[ -f "$GIT_DIR/refs/heads/$NAME" ]] || return 1
+	echo "$NAME"
+}
+
+remote_default_branch() { local REMOTE_NAME="$1"
+	[[ -z "$REMOTE_NAME" ]] && return 0
+	git remote show "$REMOTE_NAME" | grep 'HEAD branch' | cut -d':' -f2 | xargs	
+}
+
+print_remote_if_exists() { NAME="$1"
+	git remote | grep -E "^$NAME\$" || return 1
+}
+
+# Try to figure out the default remote.
+default_remote() { local REMOTES= COUNT
+	read -ra REMOTES < <(git remote) || return 0
+	COUNT=${#REMOTES}
+	[[ $COUNT -eq 1 ]] && { echo "${REMOTES[0]}"; return; }
+	# Look for the commonest remote name...
+	print_remote_if_exists origin && return
+	[[ $COUNT -eq 0 ]] && return
+	# Just pick the first remote in the list... YOLO
+	echo "${REMOTES[0]}"
+}
+
+default_target_branch() {
+	# Look for some common default branch names...
+	print_branch_if_exists main   && return
+	print_branch_if_exists master && return
+	# Query deafult remote
+	remote_default_branch "$(default_remote)"
+}
+
+TARGET_BRANCH="${1:-$(default_target_branch)}"
+
+# MERGED_LIST contains branches that have actually been merged.
+MERGED_LIST="$(git branch --merged "$TARGET_BRANCH" --format='%(refname:lstrip=2)' | grep -Ev "^$TARGET_BRANCH\$" || true)"
 read -ra MERGED <<< "$MERGED_LIST"
 
-DIR="$TMPDIR/.git-merged/$(basename "$PWD")"
+WORKDIR="$TMPDIR/git-merged/$(basename "$PWD")"
 
-debug "Working in $DIR"
+debug "Working in $WORKDIR"
 
-run rm -rf "$DIR"
-run mkdir -p "$DIR"
+run rm -rf "$WORKDIR"
+run mkdir -p "$WORKDIR"
 
-run cp -R . "$DIR/"
+run cp -R . "$WORKDIR/"
 
-#trap EXIT rm -rf "$DIR"
+#trap EXIT rm -rf "$WORKDIR"
 
-run cd "$DIR" || die "Couldn't cd to $DIR"
+run cd "$WORKDIR" || die "Couldn't cd to $WORKDIR"
 
-BRANCHES="$(find .git/refs/heads -mindepth 1 -type f | sed -E 's|^.git/refs/heads/(.*)$|\1|')"
+BRANCHES="$(find $GIT_DIR/refs/heads -mindepth 1 -type f | sed -E "s|^$GIT_DIR/refs/heads/(.*)\$|\1|")"
 
 for BRANCH in $BRANCHES; do
 	# Never check main against itself...
-	if [[ "$BRANCH" == "$MAIN" ]]; then continue; fi
-	if is_in_array "$BRANCH" "${MERGED[@]}" "$MAIN"; then
+	if [[ "$BRANCH" == "$TARGET_BRANCH" ]]; then continue; fi
+	if is_in_array "$BRANCH" "${MERGED[@]}" "$TARGET_BRANCH"; then
 		debug "Skipping squash-merge check of actually-merged branch $BRANCH"
-		log_output "✅ " "$BRANCH"
+		log_output "" "m $BRANCH"
 		continue
 	fi
-	run git reset -q --hard
-	run git checkout -qB "git-merged/test/$BRANCH" "$MAIN"
-	run git reset -q --hard "$MAIN"
-	run git merge -q -m "git-merged: test: $BRANCH -> $MAIN" "$BRANCH" > /dev/null 2>&1 || continue
-	DIFF_CHAR_COUNT="$(run git diff HEAD "$MAIN" | wc -c | xargs)"
+	run git reset -q --hard HEAD --
+	run git checkout -qB "git-merged/test/$BRANCH" "$TARGET_BRANCH" --
+	run git reset -q --hard "$TARGET_BRANCH" --
+	run git merge -q -m "git-merged: test: $BRANCH -> $TARGET_BRANCH" "$BRANCH" > /dev/null 2>&1 || continue
+	DIFF_CHAR_COUNT="$(run git diff HEAD "$TARGET_BRANCH" -- | wc -c | xargs)"
 	if [[ "$DIFF_CHAR_COUNT" -eq 0 ]]; then
-		log_output "✅ " "$BRANCH"
+		log_output "" "s $BRANCH"
 	else
-		log "❌ $BRANCH"
+		log_output "" "u $BRANCH"
 	fi
 done
