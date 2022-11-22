@@ -2,8 +2,186 @@
 
 set -Eeuo pipefail
 
-run_ok() { RESULT="$("$@" 2>&1)" || { echo "FAILED: $RESULT"; return 1; }; echo "OK:" "$@"; }
-write() { echo "$1" > "$2" && git add "$2" && git commit -m "$2: $1"; }
+setup() {
+	unset GIT_DIR
+	unset GIT_WORK_TREE
+	cd "$BATS_TEST_TMPDIR"
+	rm -rf "test-repo"
+	mkdir test-repo
+	cd test-repo
+	git init
+	ok checkout "main"
+	ok write
+	ok write
+}
+
+@test "detect 1 unmerged" {
+	create_unmerged_branch unmerged1
+	run git merged
+	[[ "$status" -eq 0 ]]
+	assert_output_contains_line "u unmerged1"
+}
+
+@test "detect 1 merged" {
+	create_merged_branch merged1
+	run git merged
+	[[ "$status" -eq 0 ]]
+	assert_output_contains_line "m merged1"
+}
+
+@test "detect 1 rebased" {
+	create_rebased_branch rebased1
+	run git merged
+	[[ "$status" -eq 0 ]]
+	assert_output_contains_line "r rebased1"
+}
+
+@test "detect 1 squashed" {
+	create_squashed_branch squashed1
+	run git merged
+	[[ "$status" -eq 0 ]]
+	assert_output_contains_line "s squashed1"
+}
+
+@test "detect all" {
+	create_unmerged_branch 	unmerged1
+	create_merged_branch   	merged1
+	create_rebased_branch  	rebased1
+	create_squashed_branch 	squashed1
+
+	run git merged
+
+	[[ "$status" -eq 0 ]]
+
+	WANT_LINES=(
+		"u unmerged1"
+		"m merged1"
+		"r rebased1"
+		"s squashed1"
+	)
+
+	assert_output_contains_exact_lines "${WANT_LINES[@]}"
+}
+
+#
+# Scenarios
+#
+
+create_unmerged_branch() { local NAME="$1" BASE="${2:-main}"
+	ok checkout "$BASE"
+	ok checkout "$NAME"
+	ok write
+	ok checkout "$BASE"
+}
+
+create_merged_branch() { local NAME="$1" BASE="${2:-main}"
+	ok checkout "$BASE"
+	ok checkout "$NAME"
+	ok write
+	ok merge_into "$BASE"
+}
+
+create_rebased_branch() { local NAME="$1" BASE="${2:-main}"
+	ok checkout "$BASE"
+	ok checkout "$NAME"
+	ok write
+	ok write
+	ok checkout "$BASE"
+	ok write
+	ok checkout "$NAME"
+	ok write
+	ok rebase_onto "$BASE"
+}
+
+create_squashed_branch() { local NAME="$1" BASE="${2:-main}"
+	ok checkout "$BASE"
+	ok checkout "$NAME"
+	ok write
+	ok write
+	ok squash_onto "$BASE"
+}
+
+#
+# Assertions
+#
+
+assert_output_contains_line() { local LINE="$1"
+	grep -E "^${LINE}\$" <<< "$output"
+}
+
+# assert_output_contains_exact_lines ensures that the output
+# contains each line specified exactly and no more or less.
+#
+# It does not care what order the lines are in.
+assert_output_contains_exact_lines() {
+	local REMAINING=()
+	IFS=$'\n' read -r -a REMAINING <<< "${output}"
+	# HACKL Strip the first element from remaining which is
+	# always an empty string for some reason.
+	REMAINING=("${REMAINING[@]:1}")
+	local GOT_COUNT="${#REMAINING[@]}"
+	local WANT_COUNT="${#@}"
+	local MISSING=()
+	for L in "$@"; do
+		if assert_output_contains_line "$L"; then
+			# Delete the found line from the got lines
+			# so any left can be reported as extra.
+			REMAINING=( "${REMAINING[@]/$L}" )
+		else
+			MISSING+=("$L")
+		fi
+	done
+
+	if \
+		[[ ${#MISSING[@]}   -eq 0 ]] &&
+		[[ ${#REMAINING[@]} -eq 0 ]]; then
+		return 0
+	fi
+		echo MISSING=${#MISSING[@]}
+		echo REMAINING=${#REMAINING[@]}
+	if [[ "${#MISSING[@]}" -ne 0 ]]; then
+		echo "Lines missing from output:"
+		for M in "${MISSING[@]}"; do
+			echo "  '$M'"
+		done
+	fi
+	if [[ ${#REMAINING[@]} -ne 0 ]]; then
+		echo "Additional unexpected lines found:"
+		for R in "${REMAINING[@]}"; do
+			echo "  '$R'"
+		done
+	fi
+	return 1
+}
+
+assert_output_exactly() { local WANT="$1"
+	[[ "$output" == "$WANT" ]]
+}
+
+#
+# Utils
+#
+
+# ok: log a command being run; hide output unless it fails.
+ok() {
+	RESULT="$("$@" 2>&1)" || {
+		echo "FAILED: $RESULT"
+		exit 1
+	}
+}
+
+# write writes a file unique to this branch and increments the
+# integer in contains by 1 and commits it to th curent branch.
+write() {
+	B="$(current_branch)"
+	F="$B"
+	C="$(cat "$F" 2> /dev/null || echo "0")"
+	(( C++ ))
+	echo "$C" > "$F"
+	git add "$F"
+	git commit -m "$B: set $F to $C"
+}
+
 checkout() { git checkout "$1" -- || git checkout -b "$1" -- || return 1; }
 current_branch() { git rev-parse --abbrev-ref HEAD; }
 common_ancestor() { git merge-base "$(current_branch)" "$1"; }
@@ -29,66 +207,3 @@ onto() { local BRANCH="$1"; shift
 rebase_onto() { onto "$1" git rebase; }
 
 squash_onto() { onto "$1" squash; }
-
-setup() {
-	unset GIT_DIR
-	unset GIT_WORK_TREE
-	cd "$BATS_TEST_TMPDIR"
-	rm -rf "test-repo"
-	mkdir test-repo
-	cd test-repo
-	git init
-}
-
-@test "detect merged" {
-	run_ok checkout "a"
-	run_ok write "1a" "a"
-
-	run_ok checkout "b"
-	run_ok write "1b" "b"
-
-	run_ok merge_into "a"
-
-	run git merged a
-	[[ "$status" -eq 0 ]]
-	[[ "$output" = "m b" ]]
-}
-
-@test "detect rebased" {
-	#skip "not implemented"
-	run_ok checkout "a"
-	run_ok write "1a" "a"
-	run_ok write "2a" "a"
-
-	run_ok checkout "b"
-	run_ok write "1b" "b"
-	run_ok write "2b" "b"
-
-	run_ok checkout "a"
-	run_ok write "3a" "a"
-
-	run_ok checkout "b"
-	run_ok write "3b" "b"
-
-	run_ok rebase_onto "a"
-
-	run git merged a
-	[[ "$status" -eq 0 ]]
-	[[ "$output" = "r b" ]] || { echo "GOT: $output"; return 1; }
-}
-
-@test "detect squashed" {
-	run_ok checkout "a"
-	run_ok write "1a" "a"
-	run_ok write "2a" "a"
-
-	run_ok checkout "b"
-	run_ok write "1b" "b"
-	run_ok write "2b" "b"
-
-	run_ok squash_onto "a"
-
-	run git merged a
-	[[ "$status" -eq 0 ]]
-	[[ "$output" = "s b" ]] || { echo "GOT: $output"; return 1; }
-}

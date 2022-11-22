@@ -91,6 +91,15 @@ is_rebased() { local BRANCH="$1" BASE="$2" LOG
 	! grep -Ev '^=' <<< "$LOG" > /dev/null 2>&1
 }
 
+is_squashed() { local BRANCH="$1" BASE="$2"
+	run git reset -q --hard HEAD --
+	run git checkout -qB "git-merged/test/$BRANCH" "$BASE" --
+	run git reset -q --hard "$BASE" --
+	run git merge -q -m "git-merged: test: $BRANCH -> $BASE" "$BRANCH" > /dev/null 2>&1 || return 1
+	DIFF_CHAR_COUNT="$(run git diff HEAD "$BASE" -- | wc -c | xargs)"
+	[[ "$DIFF_CHAR_COUNT" -eq 0 ]]
+}
+
 for BRANCH in $BRANCHES; do
 	# Never check main against itself...
 	if [[ "$BRANCH" == "$TARGET_BRANCH" ]]; then continue; fi
@@ -103,14 +112,10 @@ for BRANCH in $BRANCHES; do
 		log_output "" "r $BRANCH"
 		continue
 	fi
-	run git reset -q --hard HEAD --
-	run git checkout -qB "git-merged/test/$BRANCH" "$TARGET_BRANCH" --
-	run git reset -q --hard "$TARGET_BRANCH" --
-	run git merge -q -m "git-merged: test: $BRANCH -> $TARGET_BRANCH" "$BRANCH" > /dev/null 2>&1 || continue
-	DIFF_CHAR_COUNT="$(run git diff HEAD "$TARGET_BRANCH" -- | wc -c | xargs)"
-	if [[ "$DIFF_CHAR_COUNT" -eq 0 ]]; then
+	if is_squashed "$BRANCH" "$TARGET_BRANCH" ]]; then
 		log_output "" "s $BRANCH"
-	else
-		log_output "" "u $BRANCH"
+		continue
 	fi
+	#log_output "" "u $BRANCH $(git rev-list --left-right --count $TARGET_BRANCH...$BRANCH | sed -E -e 's/^/-/' -e 's/[[:space:]]+/ \+/')"
+	log_output "" "u $BRANCH"
 done
