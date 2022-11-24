@@ -61,11 +61,14 @@ _new_executable() { local FILENAME="$1"; local BODY="$2"
 }
 
 _new_executable_from_stdin() {
-	_new_executable "$1" "$(cat -)"
+	_new_executable "$1" "$(cat - | sed -e "s/{{ FILENAME }}/$1/g")"
 }
 
 # Filetype-specific funcs...
 
+_ext_map+=(
+	.funcs _new_bash_executable
+)
 _new_bash_executable() {
 	_new_executable_from_stdin "$1" << 'EOF'
 
@@ -78,8 +81,8 @@ _new_bash_executable() {
 		err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
 		# Set exit trap if this file was directly invoked rather than sourced.
 		# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
-		(return 0 2>/dev/null) || trap 'Makefile.funcs.main "$@"' EXIT
-		Makefile.funcs.main() {
+		(return 0 2>/dev/null) || trap '{{ FILENAME }}.main "$@"' EXIT
+		{{ FILENAME }}.main() {
 			local CODE=$?; trap - EXIT
 			[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
 			[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
@@ -89,7 +92,7 @@ _new_bash_executable() {
 		
 		# Your functions go here...
 		
-		example-func() {
+		example_func() {
 			echo "hello" "$@"
 		}
 EOF
