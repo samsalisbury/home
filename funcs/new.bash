@@ -60,16 +60,39 @@ _new_executable() { local FILENAME="$1"; local BODY="$2"
 	chmod +x "$FILENAME"
 }
 
+_new_executable_from_stdin() {
+	_new_executable "$1" "$(cat -)"
+}
+
 # Filetype-specific funcs...
 
 _new_bash_executable() {
-	_new_executable "$1" '
+	_new_executable_from_stdin "$1" << 'EOF'
+
 		#!/usr/bin/env bash
-
+		
 		set -Eeuo pipefail
-
-		echo "Hello World"
-	'
+		# shellcheck disable=SC2059
+		log() { local F="$1"; shift; printf "$F\n" "$@"; }
+		die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+		err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+		# Set exit trap if this file was directly invoked rather than sourced.
+		# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+		(return 0 2>/dev/null) || trap 'Makefile.funcs.main "$@"' EXIT
+		Makefile.funcs.main() {
+			local CODE=$?; trap - EXIT
+			[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+			[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
+			declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+			"$FUNC" "$@"
+		}
+		
+		# Your functions go here...
+		
+		example-func() {
+			echo "hello" "$@"
+		}
+EOF
 }
 
 _ext_map+=(
