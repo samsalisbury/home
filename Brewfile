@@ -14,6 +14,7 @@ brew "bats-core"
 brew "glib"
 brew "carthage"
 brew "circleci", link: false
+brew "colordiff"
 brew "coreutils"
 brew "ddcctl"
 brew "entr"
