@@ -10,9 +10,15 @@ DEFAULT_ORG=hashicorp
 log() { echo "$@" 1>&2; }
 debug() { [ "${DEBUG:-}" != "YES" ] || log "[DEBUG] $*"; }
 die() { log "$@"; exit 1; }
+# terminal returns true if we're attached to a terminal.
+is_terminal() { [[ -t 1 ]]; }
+is_tmux() { [[ -n "${TMUX:-}" ]]; }
+
 BIN="$(basename "$0")"
 
 open_tmux_window() {
+	# TODO: See if there's already a tmux window open for this repo, if so switch
+	# to that window rather than opening a new one.
 	local REPO="$1"
 	local DIR="$2"
 	echo "Opening in new tmux window..."
@@ -25,7 +31,11 @@ open_tmux_window() {
 			Enter
 }
 
-[[ -z "$TMUX" ]] || SHOULD_OPEN_TMUX_WINDOW=true
+if is_terminal && is_tmux; then
+	SHOULD_OPEN_TMUX_WINDOW=true
+else
+	SHOULD_OPEN_TMUX_WINDOW=false
+fi
 
 NEW_REPO=false
 REPO_EXPRESSION=""
