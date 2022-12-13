@@ -9,23 +9,40 @@ set -euo pipefail
 
 MONTH="$(date +%Y-%m)"
 
-case "${1-:}" in
-	-h|--help)
-		echo "Usage: crap <name> - create a new crap directory and print its path."
-		exit
-		;;
-	-l|--list)
-		tree ~/.crap
-		exit
-		;;
-esac
+OPEN_TMUX_WINDOW="$([[ -n "$TMUX" ]] && echo true || echo false)"
+
+while ARG="$1"; do
+	case "${1-:}" in
+		-h|--help)
+			echo "Usage: crap <name> - create a new crap directory and print its path."
+			exit
+			;;
+		-l|--list)
+			tree ~/.crap
+			exit
+			;;
+		-t|--open-tmux-window)
+			OPEN_TMUX_WINDOW=true
+			shift
+			continue
+			;;
+		-T|--no-open-tmux-window)
+			OPEN_TMUX_WINDOW=false
+			shift
+			continue
+			;;
+		*)
+			break
+			;;
+	esac
+done
 
 NAME="${1:?}"
 BASEDIR="$HOME/.crap/$MONTH"
 DIR="$BASEDIR/$NAME"
 [[ -d "$DIR" ]] || mkdir -p "$DIR"
 
-if [[ -n "${TMUX:-}" ]]; then
+if $OPEN_TMUX_WINDOW; then
 	tmux new-window -a -c "$DIR" -n "CRAP: $(basename "$DIR")"\; \
 		send-keys \
 			"clear && " \
