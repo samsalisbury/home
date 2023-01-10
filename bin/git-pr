@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@"; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+if EXISTING="$(gh pr view > /dev/null 2>&1)"; then
+	gh pr view
+	exit
+fi
+
+BRANCH="$(git rev-parse --abbrev-ref HEAD)" || die "can't get branch"
+git push -u origin "$BRANCH"
+gh pr create --head "$BRANCH" --fill --draft
+gh pr view
