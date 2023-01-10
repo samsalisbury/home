@@ -45,7 +45,7 @@ print_remote_if_exists() { NAME="$1"
 }
 
 # Try to figure out the default remote.
-default_remote() { local REMOTES= COUNT
+default_remote() { local REMOTES COUNT
 	read -ra REMOTES < <(git remote) || return 0
 	COUNT=${#REMOTES}
 	[[ $COUNT -eq 1 ]] && { echo "${REMOTES[0]}"; return; }
@@ -68,7 +68,10 @@ TARGET_BRANCH="${1:-$(default_target_branch)}"
 
 # MERGED_LIST contains branches that have actually been merged.
 MERGED_LIST="$(git branch --merged "$TARGET_BRANCH" --format='%(refname:lstrip=2)' | grep -Ev "^$TARGET_BRANCH\$" || true)"
-read -ra MERGED <<< "$MERGED_LIST"
+
+readarray -t MERGED <<< "$MERGED_LIST"
+
+export MERGED
 
 WORKDIR="$TMPDIR/git-merged/$(basename "$PWD")"
 
@@ -82,7 +85,7 @@ run cp -R . "$WORKDIR/"
 
 run cd "$WORKDIR" || die "Couldn't cd to $WORKDIR"
 
-BRANCHES="$(find $GIT_DIR/refs/heads -mindepth 1 -type f | sed -E "s|^$GIT_DIR/refs/heads/(.*)\$|\1|")"
+BRANCHES="$(find "$GIT_DIR/refs/heads" -mindepth 1 -type f | sed -E "s|^$GIT_DIR/refs/heads/(.*)\$|\1|")"
 
 is_rebased() { local BRANCH="$1" BASE="$2" LOG
 	LOG="$(git log --cherry --pretty=oneline "$BASE...$BRANCH")" || die "Unable to run git log --cherry --pretty=oneline ..."
@@ -108,11 +111,11 @@ for BRANCH in $BRANCHES; do
 		log_output "" "m $BRANCH"
 		continue
 	fi
-	if is_rebased "$BRANCH" "$TARGET_BRANCH" ]]; then
+	if is_rebased "$BRANCH" "$TARGET_BRANCH"; then
 		log_output "" "r $BRANCH"
 		continue
 	fi
-	if is_squashed "$BRANCH" "$TARGET_BRANCH" ]]; then
+	if is_squashed "$BRANCH" "$TARGET_BRANCH"; then
 		log_output "" "s $BRANCH"
 		continue
 	fi
