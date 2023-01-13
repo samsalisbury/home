@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@"; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+
+# Get all runs triggered on this branch by the head SHA.
+
+export HEAD_SHA="$(git rev-parse HEAD)"
+export BRANCH="$(git rev-parse --abbrev-ref $HEAD_SHA)"
+
+FIELDS="status,workflowName,name,number,headSha,conclusion,status,startedAt,event,url,databaseId"
+
+gh run list \
+	--branch "$BRANCH" \
+	--json "$FIELDS" \
+	--jq '[ .[] | select(.headSha == env.HEAD_SHA) ]' | jq .

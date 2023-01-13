@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@"; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+ANY_FAILED=false
+
+for ID in $(git-runs | jq '.[] | select(.conclusion != "success") | .databaseId'); do
+	if $ANY_FAILED; then
+		log "Skipping additional failed workflow run $ID"
+		continue
+	fi
+	ANY_FAILED=true
+	gh run view --log-failed "$ID"
+done
+
+$ANY_FAILED || log "No failed workflows for this commit."

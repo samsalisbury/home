@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@"; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+# git update <branch>
+#
+# Updates a branch by fetching from origin, without switching branches.
+
+git fetch origin "$1:$1"

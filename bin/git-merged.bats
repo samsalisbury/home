@@ -43,7 +43,7 @@ setup() {
 	assert_output_contains_line "s squashed1"
 }
 
-@test "detect all" {
+@test "detect one of each" {
 	create_unmerged_branch 	unmerged1
 	create_merged_branch   	merged1
 	create_rebased_branch  	rebased1
@@ -61,6 +61,41 @@ setup() {
 	)
 
 	assert_output_contains_exact_lines "${WANT_LINES[@]}"
+}
+
+@test "detect two of each" {
+	create_unmerged_branch 	unmerged1
+	create_merged_branch   	merged1
+	create_rebased_branch  	rebased1
+	create_squashed_branch 	squashed1
+
+	create_unmerged_branch 	unmerged2
+	create_merged_branch   	merged2
+	create_rebased_branch  	rebased2
+	create_squashed_branch 	squashed2
+
+	run git merged
+
+	[[ "$status" -eq 0 ]] || {
+		echo "OUTPUT='$output'"
+		return 1
+	}
+
+	WANT_LINES=(
+		"u unmerged1"
+		"m merged1"
+		"r rebased1"
+		"s squashed1"
+		"u unmerged2"
+		"m merged2"
+		"r rebased2"
+		"s squashed2"
+	)
+
+	assert_output_contains_exact_lines "${WANT_LINES[@]}" || {
+		echo "OUTPUT='$output'"
+		return 1
+	}
 }
 
 #
@@ -116,7 +151,7 @@ assert_output_contains_line() { local LINE="$1"
 assert_output_contains_exact_lines() {
 	local REMAINING=()
 	IFS=$'\n' read -r -a REMAINING <<< "${output}"
-	# HACKL Strip the first element from remaining which is
+	# HACK: Strip the first element from remaining which is
 	# always an empty string for some reason.
 	REMAINING=("${REMAINING[@]:1}")
 	local GOT_COUNT="${#REMAINING[@]}"
@@ -124,14 +159,15 @@ assert_output_contains_exact_lines() {
 	local MISSING=()
 	for L in "$@"; do
 		if assert_output_contains_line "$L"; then
-			# Delete the found line from the got lines
+			# Delete the found line from remaining,
 			# so any left can be reported as extra.
-			REMAINING=( "${REMAINING[@]/$L}" )
+			REMAINING=( "${REMAINING[@]/"$L"}" )
+			echo "REMAINING - '$L' == '${REMAINING[*]}'"
 		else
 			MISSING+=("$L")
 		fi
 	done
-
+return 1
 	if \
 		[[ ${#MISSING[@]}   -eq 0 ]] &&
 		[[ ${#REMAINING[@]} -eq 0 ]]; then
