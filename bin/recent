@@ -18,6 +18,7 @@ FILES="$(git log \
 | uniq)"
 
 TOTAL="$(wc -l <<< "$FILES" | xargs)"
+TOTAL="$(( TOTAL - 1 ))"
 if [[ $MAX_RESULTS -gt $TOTAL ]]; then
 	MAX_RESULTS="$TOTAL"
 fi
