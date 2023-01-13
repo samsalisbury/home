@@ -61,7 +61,8 @@ _new_executable() { local FILENAME="$1"; local BODY="$2"
 }
 
 _new_executable_from_stdin() {
-	_new_executable "$1" "$(cat - | sed -e "s/{{ FILENAME }}/$1/g")"
+	FILENAME="$(basename "$1")"
+	_new_executable "$1" "$(cat - | sed -e "s/{{ FILENAME }}/$FILENAME/g")"
 }
 
 # Filetype-specific funcs...
