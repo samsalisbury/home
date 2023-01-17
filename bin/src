@@ -143,6 +143,7 @@ debug "Got GIT_URL=$GIT_URL"
 debug "Cloning."
 git clone "$GIT_URL" "$DIR" 2>&1 | sed 's/^/[ GIT ] /g' 1>&2
 
-log "Cloned $REPO_URL into $DIR"
+log "Cloned $HOST_ORG_REPO into $DIR"
+
 
 echo "$DIR"
