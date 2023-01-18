@@ -56,15 +56,21 @@ prs/json/view() {
 # PR Closed:  hashicorp/security-tsccr #131 "test multi commit pr 3"
 # PR Comment: hashicorp/security-tsccr #131 "test multi commit pr 3"
 
+TODAY="$(date +%Y-%m-%d)"
+
 PRS_MD_TEMPLATE='
 {{- range .}}{{ if eq .type "PullRequestEvent" -}}
-- {{ .created_at -}}
-{{- if and (eq .payload.action "closed") .payload.pull_request.merged }} merged {{else}} {{.payload.action}} {{end}}{{ .repo.name -}}
-{{- with .payload.pull_request -}}
-{{ printf "\t[#%.f](%s)\t%s" .number .url .title }}
+{{- if eq (timefmt "2006-01-02" .created_at) "'"$TODAY"'" -}}
+- {{- if and (eq .payload.action "closed") .payload.pull_request.merged }} merged {{else}} {{.payload.action}} {{end}}
+{{- printf "[**%s** #%.f](%s) (%s)"
+	.payload.pull_request.title
+	.payload.pull_request.number
+	.payload.pull_request.html_url
+	.repo.name
+}}
 {{end}}{{end}}{{end -}}
 '
 
 prs/md() {
-	prs/query --template "$PRS_MD_TEMPLATE" | column -s$'\t' -t
+	prs/query --template "$PRS_MD_TEMPLATE" | tac
 }
