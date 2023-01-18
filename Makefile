@@ -1,14 +1,25 @@
 SHELL := /usr/bin/env bash -euo pipefail -c
 
-default: install
-
 BREW_FLAGS := --no-upgrade
 
-install:
-	brew bundle $(BREW_FLAGS) | grep -Ev '^Using'
+default: help
+
+help:
+	@echo '  make brew/install   # install missing things'
+	@echo '  make brew/outdated  # list outdated deps that are mentioned in Brewfile'
+	@echo '  make brew/upgrade   # upgrade all deps that are mentioned in Brewfile'
+
+brew/outdated:
+	@brew-tools outdated_brewfile
+
+brew/upgrade:
+	@brew-tools upgrade_outdated_brewfile_deps
+
+brew/install:
+	@brew-tools install
 
 upgrade-all: BREW_FLAGS :=
-upgrade-all: install
+upgrade-all: brew/install
 
 .PHONY: tmux
 tmux: .tmux/reset.conf
