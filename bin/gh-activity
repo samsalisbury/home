@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@"; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || trap 'gh-activity.main "$@"' EXIT
+gh-activity.main() {
+	local CODE=$?; trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
+	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	"$FUNC" "$@"
+}
+
+# Your functions go here...
+
+PRS_JQ='
+	.[] 
+	| select(.type == "PullRequestEvent") 
+	| {
+		type: .type,
+		repo: .repo.name,
+		created_at: .created_at,
+		public: .public,
+		action:          .payload.action,
+		title:           .payload.pull_request.title,
+		number:          .payload.pull_request.number,
+		merged:          .payload.pull_request.merged,
+		comments:        .payload.pull_request.comments,
+		review_comments: .payload.pull_request.review_comments,
+		commits:         .payload.pull_request.commits,
+		additions:       .payload.pull_request.additions,
+		deletions:       .payload.pull_request.deletions,
+		changed_files:   .payload.pull_request.changed_files
+	}
+'
+
+prs/query() {
+	gh api /users/samsalisbury/events?per_page=100 "$@"
+}
+
+prs/json() {	
+	prs/query --jq "$PRS_JQ" 
+}
+
+prs/json/view() {	
+	prs/json | view-json
+}
+
+# PR Opened:  hashicorp/security-tsccr #131 "test multi commit pr 3"
+# PR Merged:  hashicorp/security-tsccr #131 "test multi commit pr 3"
+# PR Closed:  hashicorp/security-tsccr #131 "test multi commit pr 3"
+# PR Comment: hashicorp/security-tsccr #131 "test multi commit pr 3"
+
+PRS_MD_TEMPLATE='
+{{- range .}}{{ if eq .type "PullRequestEvent" -}}
+- {{ .created_at -}}
+{{- if and (eq .payload.action "closed") .payload.pull_request.merged }} merged {{else}} {{.payload.action}} {{end}}{{ .repo.name -}}
+{{- with .payload.pull_request -}}
+{{ printf "\t[#%.f](%s)\t%s" .number .url .title }}
+{{end}}{{end}}{{end -}}
+'
+
+prs/md() {
+	prs/query --template "$PRS_MD_TEMPLATE"
+}
