@@ -66,5 +66,5 @@ PRS_MD_TEMPLATE='
 '
 
 prs/md() {
-	prs/query --template "$PRS_MD_TEMPLATE"
+	prs/query --template "$PRS_MD_TEMPLATE" | column -s$'\t' -t
 }
