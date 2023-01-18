@@ -77,7 +77,7 @@ _new_bash_executable() {
 		
 		set -Eeuo pipefail
 		# shellcheck disable=SC2059
-		log() { local F="$1"; shift; printf "$F\n" "$@"; }
+		log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
 		die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
 		err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
 		# Set exit trap if this file was directly invoked rather than sourced.
