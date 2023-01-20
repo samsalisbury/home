@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+URLFILE=".gist_url"
+
+URL=""
+if [[ -f "$URLFILE" ]]; then URL="$(cat "$URLFILE")"; fi
+
+# shellcheck disable=SC2207 # Dirty array expansion.
+FILES_RAW=( $(find . -mindepth 1 -maxdepth 1 -type f -not -name '\.*') )
+FILES=()
+for F in "${FILES_RAW[@]}"; do
+	FILES+=("$F")
+done
+
+DIRS="$(find . -mindepth 1 -maxdepth 1 -type d -not -name '\.*')"
+
+if [[ -n "$DIRS" ]]; then
+	echo "==> ERROR: This directory contains subdirectories; not gistable."
+	exit 1
+fi
+
+if [[ -z "$URL" ]]; then
+	echo "==> Creating new gist..."
+	URL="$(gh gist create --desc "$(basename "$PWD")" "${FILES[@]}")" || exit 1
+	echo "$URL" > "$URLFILE"
+else
+	for F in "${FILES[@]}"; do
+		(
+			edprog="cat $F > \$1"
+			export EDITOR="$TMPDIR/reflect-editor"
+			echo "$edprog" > "$EDITOR"
+			gh gist edit "$URL"  --filename "$F"
+		)
+	done
+fi
+
+echo "Gist URL: $URL"
+
+

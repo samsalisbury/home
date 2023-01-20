@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+QUERY="${1:-.}"
+
+cat - | jq --color-output "$QUERY" | less --RAW-CONTROL-CHARS
