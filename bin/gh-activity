@@ -16,61 +16,66 @@ gh-activity.main() {
 	"$FUNC" "$@"
 }
 
-# Your functions go here...
+GDATE_FORMAT="+%Y-%m-%d"
+GO_DATE_FORMAT="2006-01-02"
 
-PRS_JQ='
-	.[] 
-	| select(.type == "PullRequestEvent") 
-	| {
-		type: .type,
-		repo: .repo.name,
-		created_at: .created_at,
-		public: .public,
-		action:          .payload.action,
-		title:           .payload.pull_request.title,
-		number:          .payload.pull_request.number,
-		merged:          .payload.pull_request.merged,
-		comments:        .payload.pull_request.comments,
-		review_comments: .payload.pull_request.review_comments,
-		commits:         .payload.pull_request.commits,
-		additions:       .payload.pull_request.additions,
-		deletions:       .payload.pull_request.deletions,
-		changed_files:   .payload.pull_request.changed_files
-	}
-'
+date_string() { local DATE="$1"; gdate -d "$DATE" "$GDATE_FORMAT"; }
+
+prs_md_template() { local DATE="${1:-$DEFAULT_DATE}"
+	DATE_STR="$(date_string "$DATE")"
+	echo '
+		{{- range . -}}
+			{{- if and (eq .type "PullRequestEvent") (eq (timefmt "'"$GO_DATE_FORMAT"'" .created_at) "'"$DATE_STR"'") -}}
+				- {{- if and (eq .payload.action "closed") .payload.pull_request.merged }} merged {{else}} {{.payload.action}} {{end}}
+				{{- printf "[**%s** #%.f](%s) (%s)\n"
+					.payload.pull_request.title
+					.payload.pull_request.number
+					.payload.pull_request.html_url
+					.repo.name
+				}}
+			{{- end -}}
+		{{- end -}}
+	'
+}
+
+prs_jq_query() { local DATE="${1:-$DEFAULT_DATE}"
+	DATE_STR="$(date_string "$DATE")"
+	echo '
+		.[] 
+		| select(.type == "PullRequestEvent" and strftime(.created_at, "%Y-%m-%d") == '"$DATE_STR"')
+		| {
+			type: .type,
+			repo: .repo.name,
+			created_at: .created_at,
+			public: .public,
+			action:          .payload.action,
+			title:           .payload.pull_request.title,
+			number:          .payload.pull_request.number,
+			merged:          .payload.pull_request.merged,
+			comments:        .payload.pull_request.comments,
+			review_comments: .payload.pull_request.review_comments,
+			commits:         .payload.pull_request.commits,
+			additions:       .payload.pull_request.additions,
+			deletions:       .payload.pull_request.deletions,
+			changed_files:   .payload.pull_request.changed_files
+		}
+	'
+}
+
+DEFAULT_DATE=yesterday
 
 prs/query() {
 	gh api /users/samsalisbury/events?per_page=100 "$@"
 }
 
-prs/json() {	
-	prs/query --jq "$PRS_JQ" 
+prs/json() { local DATE="${1:-$DEFAULT_DATE}"
+	prs/query --jq "$(prs_jq_query "$DATE")"
 }
 
-prs/json/view() {	
-	prs/json | view-json
+prs/json/view() { local DATE="${1:-$DEFAULT_DATE}"
+	prs/json "$DATE" | view-json
 }
 
-# PR Opened:  hashicorp/security-tsccr #131 "test multi commit pr 3"
-# PR Merged:  hashicorp/security-tsccr #131 "test multi commit pr 3"
-# PR Closed:  hashicorp/security-tsccr #131 "test multi commit pr 3"
-# PR Comment: hashicorp/security-tsccr #131 "test multi commit pr 3"
-
-TODAY="$(date +%Y-%m-%d)"
-
-PRS_MD_TEMPLATE='
-{{- range .}}{{ if eq .type "PullRequestEvent" -}}
-{{- if eq (timefmt "2006-01-02" .created_at) "'"$TODAY"'" -}}
-- {{- if and (eq .payload.action "closed") .payload.pull_request.merged }} merged {{else}} {{.payload.action}} {{end}}
-{{- printf "[**%s** #%.f](%s) (%s)"
-	.payload.pull_request.title
-	.payload.pull_request.number
-	.payload.pull_request.html_url
-	.repo.name
-}}
-{{end}}{{end}}{{end -}}
-'
-
-prs/md() {
-	prs/query --template "$PRS_MD_TEMPLATE" | tac
+prs/md() { local DATE="${1:-$DEFAULT_DATE}"
+	prs/query --template "$(prs_md_template "$DATE")" | tac
 }
