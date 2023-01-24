@@ -29,6 +29,7 @@ brew "gnutls"
 brew "gnupg"
 brew "gnupg@1.4", link: false
 brew "gomplate"
+brew "goreleaser"
 brew "graphviz"
 brew "grep"
 brew "gron"
@@ -45,6 +46,7 @@ brew "openssl"
 brew "pandoc"
 brew "parallel", args: ["force", "overwrite"]
 brew "pinentry-mac"
+brew "podman"
 # Don't install python here; use pyenv to install it.
 brew "python-yq"
 brew "readline"
