@@ -13,5 +13,5 @@ fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)" || die "can't get branch"
 git push -u origin "$BRANCH"
-gh pr create --head "$BRANCH" --fill --draft
+gh pr create --head "$BRANCH" --fill --web
 gh pr view
