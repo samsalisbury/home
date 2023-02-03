@@ -1,5 +1,6 @@
 
 set t_Co=256
+set mouse=
 
 let g:python3_host_prog = '$HOME/.pyenv/versions/py3nvim/bin/python'
 
