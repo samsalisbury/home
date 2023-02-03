@@ -56,6 +56,16 @@ gh() {
 	)
 }
 
+# Git - auto-load github credentials if available.
+git() {
+	local BIN
+	BIN="$(which git)"
+	(
+		creds github > /dev/null 2>&1
+		"$BIN" "$@"
+	)
+}
+
 # Bash history settings.
 HISTSIZE=10000 # in-memory history items
 HISTFILESIZE=2000000
