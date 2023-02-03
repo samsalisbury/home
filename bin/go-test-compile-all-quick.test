@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2086 # In this script, we want to split things on spaces.
+
+set -Eeuo pipefail
+
+
+# Set PACKAGES if you want to test a specific package or subset thereof.
+: "${PACKAGES:=./...}"
+
+# Set EXTRA_FLAGS if you want to set additional flags.
+: "${EXTRA_FLAGS:=}"
+
+# quick function to benchmark running tests with -toolexec=go-build-no-link
+# with and without a warm cache.
+bench() {
+	{
+		for TE in "" "go-build-no-link"; do
+			for CLEAN in "go clean -cache" ""; do
+				[[ -n "$CLEAN" ]] && echo "==> Cleaning build cache..."
+				$CLEAN
+				COMMAND="go test -exec true $EXTRA_FLAGS -toolexec=$TE $PACKAGES"
+				echo "==> Running command: time $COMMAND"
+				time $COMMAND
+				echo "====="
+			done;
+		done;
+	} 2>&1 | tee log.txt | grep -E '^(real|user|sys|CLEAN|TE)'
+}
+
+time bench
+
+# Example output:
+#
+# CLEAN: go clean -cache
+# TE:
+# real    1m44.692s
+# user    11m17.472s
+# sys     1m53.360s
+# CLEAN:
+# TE:
+# real    0m55.341s
+# user    5m56.466s
+# sys     0m56.026s
+# CLEAN: go clean -cache
+# TE: go-build-no-link
+# real    1m11.839s
+# user    5m19.279s
+# sys     1m53.161s
+# CLEAN:
+# TE: go-build-no-link
+# real    0m18.956s
+# user    0m12.122s
+# sys     0m42.138s
+# 
+# real    4m14.119s
+# user    22m45.442s
+# sys     5m26.505s

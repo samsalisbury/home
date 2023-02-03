@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+go test -exec=true -toolexec=go-build-no-link ./...

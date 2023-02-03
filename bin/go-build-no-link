@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Usage: go test -exec=true -toolexec=go-compile-without-link ./...
+
+set -euo pipefail
+
+# Functions named skip/X are used in place of binaries called X.
+skip/link() { touch "$1"; }
+skip/vet() { true; }
+
+TOOL="${1:-}"
+# If the first arg to the tool is to get the full version, just let that happen.
+[[ "${2:-}" == "-V=full" ]] && { "$@"; exit; }
+# shellcheck disable=SC2207
+SKIP=($(declare -F | grep -E 'skip\/' | cut -d' ' -f3))
+shift
+TOOLNAME="$(basename "$TOOL")"	
+for T in "${SKIP[@]}"; do
+	F="skip/$TOOLNAME"
+	[[ "$F" = "$T" ]] || continue
+	"$F" "$@"
+	exit
+done
+"$TOOL" "$@"
