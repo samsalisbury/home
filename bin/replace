@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 # Wraps call to sed -i to delete the backup files at the same time.
+#
+# Usage:
+#
+#   replace <sed command> [file]...
 
 set -Eeuo pipefail
 
