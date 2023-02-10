@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Checks if local branches have been merged, rebased, squash-merged, or cherry-picked
+# onto/into another branch (default main).
+#
+# TODO:
+#
+#   - See if we can avoid copying the whole worktree when making the temp copy.
+#     Maybe just the .git dir would be enough to do these checks, and this should
+#     make things faster and maybe more stable.
+#     - In my home directory the current implementation doesn't work because there
+#       are so many files there that aren't tracked by git.
+
 set -euo pipefail
 VERBOSE="${VERBOSE:-1}"
 DEBUG="${DEBUG:-0}"
