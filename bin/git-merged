@@ -28,10 +28,15 @@ is_in_array() { local WHAT="$1"; shift
 	return 1
 }
 
-GIT_DIR="${GIT_DIR:-.git}"
+# Use DOT_GIT_DIR to avoid confusing git by setting GIT_DIR...
+DOT_GIT_DIR="${GIT_DIR:-}"
+
+[[ -n "$DOT_GIT_DIR" ]] || {
+	DOT_GIT_DIR="$(git rev-parse --absolute-git-dir)" || die "Not in a Git repo."
+}
 
 print_branch_if_exists() { local NAME="$1"
-	[[ -f "$GIT_DIR/refs/heads/$NAME" ]] || return 1
+	[[ -f "$DOT_GIT_DIR/refs/heads/$NAME" ]] || return 1
 	echo "$NAME"
 }
 
@@ -73,19 +78,21 @@ readarray -t MERGED <<< "$MERGED_LIST"
 
 export MERGED
 
-WORKDIR="$TMPDIR/git-merged/$(basename "$PWD")"
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+WORKDIR="$TMPDIR/git-merged/$(basename "$REPO_ROOT")"
 
 debug "Working in $WORKDIR"
 
 run rm -rf "$WORKDIR"
 run mkdir -p "$WORKDIR"
-run cp -R . "$WORKDIR/"
+run cp -R "$REPO_ROOT/." "$WORKDIR"
 
 #trap EXIT rm -rf "$WORKDIR"
 
 run cd "$WORKDIR" || die "Couldn't cd to $WORKDIR"
 
-BRANCHES="$(find "$GIT_DIR/refs/heads" -mindepth 1 -type f | sed -E "s|^$GIT_DIR/refs/heads/(.*)\$|\1|")"
+BRANCHES="$(find "$DOT_GIT_DIR/refs/heads" -mindepth 1 -type f | sed -E "s|^$DOT_GIT_DIR/refs/heads/(.*)\$|\1|")"
 
 is_rebased() { local BRANCH="$1" BASE="$2" LOG
 	LOG="$(git log --cherry --pretty=oneline "$BASE...$BRANCH")" || die "Unable to run git log --cherry --pretty=oneline ..."
