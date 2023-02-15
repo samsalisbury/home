@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+# Config
+#
+CLI_VERSION="0.0.0"
+CLI_DATE="2023-02-15"
+CLI_NAME="$(basename "$0")"
+CLI_AUTHOR="Sam Salisbury"
+CLI_LICENSE="MIT"
+
+#
+# Boilerplate
+#
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || trap 'git-releases.main "$@"' EXIT
+git-releases.main() {
+	local CODE=$?; trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	[[ ${#@} != 0 ]] || { usage_error "No arguments passed."; }
+	run_command "$@"
+}
+CMD_PREFIX="cmd/"; usage_error() { usage 1>&2; die "$@"; }
+usage() {
+	echo
+	echo "Usage: $CLI_NAME [command]"
+	echo "Available commands:"
+	list_commands | while read -r C; do echo "  $C"; done
+	echo
+	cmd/version --full
+	echo
+}
+list_commands() { declare -F | cut -d' ' -f3 | grep -E "^$CMD_PREFIX.+\$" | cut -d/ -f2; }
+run_command()   {
+	local NAME="$1"; shift;
+	list_commands | grep -qE "^$NAME\$" || usage_error "Command $NAME not defined."
+	"$CMD_PREFIX$NAME" "$@"
+}
+cmd/help() { usage; }
+cmd/version() { local ARG="${1:-}"
+	[[ -z "$ARG" ]] && { echo "v$CLI_VERSION"; return; }
+	[[ "$ARG" == "--full" ]] && 	{
+		echo "$CLI_NAME v$CLI_VERSION ($CLI_DATE)"
+		echo "Written by $CLI_AUTHOR; License $CLI_LICENSE"
+		return
+	}
+	return "$(err "flag %s not recognised" "$ARG")"
+}
+
+#
+# End boilerplate.
+#
+
+# Add functions below named 'cmd/...' and they will become top-level commands.
+
+cmd/delete-all-drafts() {
+	local P="/repos/{owner}/{repo}/releases"
+	gh api "$P" --jq '.[] | select(.draft) | .id' | while read -r ID; do
+		gh api --method DELETE "$P/$ID"
+	done
+}
