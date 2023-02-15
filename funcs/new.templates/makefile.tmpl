@@ -1,35 +1,26 @@
 
-SHELL := /usr/bin/env
 .ONESHELL:
-
-NAME := my-project
-BIN  := ./$(NAME)
-
-default: test
-.PHONY: default
-
-ALL_PACKAGES := ./...
 
 # Make on macOS is stuck at 3.81
 ifeq ($(MAKE_VERSION),3.81)
-	SHELL += bash -euo pipefail -c
+	SHELL := /usr/bin/env bash -euo pipefail -c
 else
-	.SHELLFLAGS = bash -euo pipefail -c
+	SHELL := /usr/bin/env
+	.SHELLFLAGS = -euo pipefail -c
 endif
 
 MAKEFLAGS += --silent --jobs=8
 
-# DESTDIR is the absolute path to the install path if running 'make install'
-# Default to wherever it's currently installed using which, or /usr/local/bin
-# if it's not yet installed.
-DESTDIR ?= $(shell $$(dirname $$(which $(NAME)) 2>/dev/null || echo /usr/local/bin)
+QUIET_UNLESS_FAIL = OUT="$$($2 2>&1)" || { CODE="$$?"; printf "$1 failed:\n%s" "$$OUT"; exit $$CODE; }; echo "$1: OK"
 
-define QUIET_UNLESS_FAIL =
-	OUT="$$($2 2>&1)" || {
-		CODE="$$?"; printf "$1 failed:\n%s" "$$OUT"; exit $$CODE
-	}
-	echo "$1: OK"
-endef
+default: test
+.PHONY: default
+
+# -----
+# Section: Go General
+# This section should be useful for all go projects.
+# -----
+ALL_PACKAGES := ./...
 
 check/compile:
 	$(call QUIET_UNLESS_FAIL,Compilation, go build $(ALL_PACKAGES))
@@ -39,6 +30,20 @@ check/compile:
 test: check/compile
 	$(call QUIET_UNLESS_FAIL,Running go tests, go test $(ALL_PACKAGES))
 .PHONY: test
+
+# -----
+# Section: Go Executable.
+# This section is useful for go projects creating an executable.
+# -----
+NAME := hc-gh
+
+# BIN is the binary name.
+BIN  := ./$(NAME)
+
+# DESTDIR is the absolute path to the install path if running 'make install'
+# Default to wherever it's currently installed using which, or /usr/local/bin
+# if it's not yet installed.
+DESTDIR ?= $(shell $$(dirname $$(which $(NAME)) 2>/dev/null || echo /usr/local/bin)
 
 build: $(BIN)
 	echo $<
