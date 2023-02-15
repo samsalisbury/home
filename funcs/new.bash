@@ -1,6 +1,8 @@
 
 log() { echo "==> $*" 1>&2; }
 
+_template() { cat "$HOME/funcs/new.templates/$1"; }
+
 new() {
 	(
 		set -eu
@@ -54,6 +56,10 @@ _new_file() { local FILENAME="$1"; local BODY="$2"
 	echo -n "$TRIMMED" > "$FILENAME"
 }
 
+_new_file_from_template() { local TEMPLATE="$1" FILENAME="$2"
+	_new_file "$2" "$(_template "$1")"
+}
+
 _new_executable() { local FILENAME="$1"; local BODY="$2"
 	_new_file "$FILENAME" "$BODY"
 	log "Making it executable..."
@@ -65,38 +71,18 @@ _new_executable_from_stdin() {
 	_new_executable "$1" "$(cat - | sed -e "s/{{ FILENAME }}/$FILENAME/g")"
 }
 
+_new_executable_from_template() {
+	FILENAME="$(basename "$2")"
+	_new_executable "$2" "$(_template "$1" | sed -e "s/{{ FILENAME }}/$FILENAME/g")"	
+}
+
 # Filetype-specific funcs...
 
 _ext_map+=(
 	.funcs _new_bash_executable
 )
 _new_bash_executable() {
-	_new_executable_from_stdin "$1" << 'EOF'
-
-		#!/usr/bin/env bash
-		
-		set -Eeuo pipefail
-		# shellcheck disable=SC2059
-		log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
-		die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
-		err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
-		# Set exit trap if this file was directly invoked rather than sourced.
-		# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
-		(return 0 2>/dev/null) || trap '{{ FILENAME }}.main "$@"' EXIT
-		{{ FILENAME }}.main() {
-			local CODE=$?; trap - EXIT
-			[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-			[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
-			declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
-			"$FUNC" "$@"
-		}
-		
-		# Your functions go here...
-		
-		example_func() {
-			echo "hello" "$@"
-		}
-EOF
+	_new_executable_from_template bash_executable.tmpl "$1"
 }
 
 _ext_map+=(
@@ -133,12 +119,7 @@ _ext_map+=(
 	GNUmakefile _new_makefile
 )
 _new_makefile() {
-	_new_file "$1" '
-		SHELL := /usr/bin/env bash -euo pipefail -c
-
-		target:
-			@echo recipe
-	'
+	_new_file_from_template makefile.tmpl "$1"
 }
 
 

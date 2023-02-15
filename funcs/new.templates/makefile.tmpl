@@ -1,0 +1,54 @@
+
+SHELL := /usr/bin/env
+.ONESHELL:
+
+NAME := my-project
+BIN  := ./$(NAME)
+
+default: test
+.PHONY: default
+
+ALL_PACKAGES := ./...
+
+# Make on macOS is stuck at 3.81
+ifeq ($(MAKE_VERSION),3.81)
+	SHELL += bash -euo pipefail -c
+else
+	.SHELLFLAGS = bash -euo pipefail -c
+endif
+
+MAKEFLAGS += --silent --jobs=8
+
+# DESTDIR is the absolute path to the install path if running 'make install'
+# Default to wherever it's currently installed using which, or /usr/local/bin
+# if it's not yet installed.
+DESTDIR ?= $(shell $$(dirname $$(which $(NAME)) 2>/dev/null || echo /usr/local/bin)
+
+define QUIET_UNLESS_FAIL =
+	OUT="$$($2 2>&1)" || {
+		CODE="$$?"; printf "$1 failed:\n%s" "$$OUT"; exit $$CODE
+	}
+	echo "$1: OK"
+endef
+
+check/compile:
+	$(call QUIET_UNLESS_FAIL,Compilation, go build $(ALL_PACKAGES))
+	$(call QUIET_UNLESS_FAIL,Test compilation, go test -exec true $(ALL_PACKAGES))
+.PHONY: check/compile
+
+test: check/compile
+	$(call QUIET_UNLESS_FAIL,Running go tests, go test $(ALL_PACKAGES))
+.PHONY: test
+
+build: $(BIN)
+	echo $<
+.PHONY: build
+
+$(BIN): test
+	go build -o "$@"
+.PHONY: $(BIN)
+
+install: $(BIN)
+	mkdir -p "$(DESTDIR)"
+	install "$(BIN)" "$(DESTDIR)"
+.PHONY: install
