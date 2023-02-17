@@ -4,24 +4,26 @@ To set this up on a new machine:
 
 1. Install bash and git.
 2. Clone this repo: `git clone https://github.com/samsalisbury/home`
-3. ( cd home && git config status.showUntrackedFiles no
-3. Move the home/.git dir to ~/home.git
-4. Move all the other files from home/ to ~/
-5. Paste the script below into your .profile or .bashrc:
+3. Start a new bash shell, and everything should be there.
 
-```
-# Home git directory, for tracking dotfiles etc.
-export HOME_GIT_DIR="$HOME/home.git"
+To make changes:
 
-# Add 'home' alias to open an interactive subshell configured for managing
-# dotfiles etc via git, in my $HOME directory.
-alias home='/usr/bin/env GIT_DIR=$HOME_GIT_DIR GIT_WORK_TREE=$HOME bash -l'
-# Set up the environment when this profile is loaded in the new subshell.
-if [ "$GIT_DIR" = "$HOME_GIT_DIR" ]; then
-	cd "$HOME" || true
-	export PS1="home.git> $PS1"
-	# Override 'ga' func to add only modified files by default.
-	ga() { if [ -z "$*" ]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
-	echo "==> Git configured for home directory; Ctrl+D to go back to previous shell."
-fi
+Type `home` to start a subshell with git configured to manage
+the home directory. This uses
+[git-dotfiles](https://fieldnotes.tech/2022/11/20/managing-dotfiles-with-git/)
+to create an isolated git environment that's only aware of files you explicitly
+`git add` to the repo. It also uses `home.git` as its `GIT_DIR` so when you're
+not using this shell, other directories don't thing they're in some gigantic
+repo (which they would if we used `~/.git` as the git dir).
+
+```shell
+~ sam$ home
+# Home subshell started.
+home.git> ~ sam$ git add README.md
+home.git> ~ sam$ git commit -m "Update readme"
+home.git> ~ sam$ git commit -m "Update readme"
+home.git> ~ sam$ exit
+# Home subshell ended.
+~ sam$ home
 ```
+
