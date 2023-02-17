@@ -21,7 +21,7 @@ repo (which they would if we used `~/.git` as the git dir).
 # Home subshell started.
 home.git> ~ sam$ git add README.md
 home.git> ~ sam$ git commit -m "Update readme"
-home.git> ~ sam$ git commit -m "Update readme"
+home.git> ~ sam$ git push
 home.git> ~ sam$ exit
 # Home subshell ended.
 ~ sam$ home
