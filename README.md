@@ -24,6 +24,6 @@ home.git> ~ sam$ git commit -m "Update readme"
 home.git> ~ sam$ git push
 home.git> ~ sam$ exit
 # Home subshell ended.
-~ sam$ home
+~ sam$ 
 ```
 
