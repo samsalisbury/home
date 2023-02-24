@@ -11,10 +11,6 @@
 #     - In my home directory the current implementation doesn't work because there
 #       are so many files there that aren't tracked by git.
 #   
-#   - Add flag to auto-delete merged branches.
-#     Currently you can do:
-#     git-merged | grep -E '^[msr]' | cut -d' ' -f2 | while read -r B; do git branch -d "$B"; done
-
 set -euo pipefail
 VERBOSE="${VERBOSE:-1}"
 DEBUG="${DEBUG:-0}"
@@ -37,6 +33,27 @@ run() {
 		_log "Command failed: $*"
 	fi
 }
+
+DELETE=false
+
+while getopts ":d" opt; do
+  case $opt in
+    d)
+	  DELETE=true
+	  shift
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
 is_in_array() { local WHAT="$1"; shift
 	for E; do [[ "$E" == "$WHAT" ]] && return 0; done
@@ -125,22 +142,67 @@ is_squashed() { local BRANCH="$1" BASE="$2"
 	[[ "$DIFF_CHAR_COUNT" -eq 0 ]]
 }
 
+TO_DELETE=()
+mark_for_deletion() { local BRANCH="$1"
+	$DELETE || return 0
+	TO_DELETE+=("$BRANCH")
+}
+SUFFIX=""
 for BRANCH in $BRANCHES; do
+	if [[ "$BRANCH" == "$CURRENT_BRANCH" ]]; then
+		SUFFIX=" *"
+	else
+		SUFFIX=""
+	fi
 	# Never check main against itself...
 	if [[ "$BRANCH" == "$TARGET_BRANCH" ]]; then continue; fi
 	if is_in_array "$BRANCH" "${MERGED[@]}" "$TARGET_BRANCH"; then
 		debug "Skipping squash-merge check of actually-merged branch $BRANCH"
-		log_output "" "m $BRANCH"
+		log_output "" "m $BRANCH$SUFFIX"
+		mark_for_deletion "$BRANCH"
 		continue
 	fi
 	if is_rebased "$BRANCH" "$TARGET_BRANCH"; then
-		log_output "" "r $BRANCH"
+		log_output "" "r $BRANCH$SUFFIX"
+		mark_for_deletion "$BRANCH"
 		continue
 	fi
 	if is_squashed "$BRANCH" "$TARGET_BRANCH"; then
-		log_output "" "s $BRANCH"
+		log_output "" "s $BRANCH$SUFFIX"
+		mark_for_deletion "$BRANCH"
 		continue
 	fi
 	#log_output "" "u $BRANCH $(git rev-list --left-right --count $TARGET_BRANCH...$BRANCH | sed -E -e 's/^/-/' -e 's/[[:space:]]+/ \+/')"
 	log_output "" "u $BRANCH"
 done
+
+$DELETE || exit 0 
+
+COUNT=${#TO_DELETE[@]}
+if [[ $COUNT == 0 ]]; then 
+	log "==> No merged branches to delete."
+	exit 1
+fi
+
+echo "==> Do you want to delete these branches? (Y/n):"
+for B in "${TO_DELETE[@]}"; do
+	echo "$B"
+done
+
+FAILED=false
+
+read -r ANSWER
+{ [[ -z "$ANSWER" ]] || [[ "$ANSWER" == "y" ]]; } && {
+	log "==> Deleting..."
+	cd "$REPO_ROOT" || exit 1
+	for B in "${TO_DELETE[@]}"; do
+		if [[ "$B" == "$CURRENT_BRANCH" ]]; then
+			log "Skipping delete of current branch."
+			continue
+		fi
+		git branch -d "$B" || { FAILED=true; }
+	done
+}
+if $FAILED; then
+	die "Failed to delete some branches."
+fi
