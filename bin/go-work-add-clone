@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+MOD_PATH="$1"
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+[[ "$PWD" == "$REPO_ROOT" ]] || die "Must run from repo root ($REPO_ROOT)"
+
+[[ -f go.work ]] || go work init
+
+MOD_DIR="go.modules"
+
+# Clone the repo hidden.
+mkdir -p "$MOD_DIR"
+echo "*" > "$MOD_DIR/.gitignore"
+
+MOD_NAME="$(basename "$MOD_PATH")"
+
+CLONE_DIR="$MOD_DIR/$MOD_NAME"
+
+log "Cloning into $CLONE_DIR"
+
+[[ -e "$CLONE_DIR" ]] && die "Already exists: $CLONE_DIR"
+mkdir -p "$CLONE_DIR"
+git clone -q "https://$MOD_PATH" "$CLONE_DIR"
+
+go work use "$CLONE_DIR"
+
+log "==> All done. Run 'go work sync' and you're off to the races."
