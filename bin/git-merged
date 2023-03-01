@@ -10,6 +10,11 @@
 #     can tell there's no other copy, since it's not pushed nor actually merged with
 #     the target branch. These branches should not be marked for deletion when using
 #     the -d flag of this command.
+#     - You can check if the branch has an upstream using 'git config <branch>.remote'
+#       if you get a string back, it's configured with a remote and may be pushed
+#       if not it has no remote so cannot have been pushed.
+#       If there's a remote configured, check if the local branch is merged to the
+#       remote branch.
 #
 #   - See if we can avoid copying the whole worktree when making the temp copy.
 #     Maybe just the .git dir would be enough to do these checks, and this should
