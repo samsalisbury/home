@@ -6,7 +6,19 @@ log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
 die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
 err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
 
-MOD_PATH="$1"
+BIN_NAME="$0"
+
+usage() {
+	echo "usage: $(basename "$BIN_NAME") <go/module/path>"
+	echo
+	echo "Clones a module to your go workspace inside go.modules/"
+	echo "If go mod init hasn't been run, that is run and the current module"
+	echo "is also added to go.work."
+}
+
+MOD_PATH="${1:-}"
+
+[[ -n "$MOD_PATH" ]] || { log "$(usage)"; exit 2; }
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
