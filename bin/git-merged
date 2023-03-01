@@ -5,6 +5,12 @@
 #
 # TODO:
 #
+#   - Mark branches which appear to be squashed or rebased but which are not pushed
+#     to upstream separately. These branches fail to be deleted with '-d' because Git
+#     can tell there's no other copy, since it's not pushed nor actually merged with
+#     the target branch. These branches should not be marked for deletion when using
+#     the -d flag of this command.
+#
 #   - See if we can avoid copying the whole worktree when making the temp copy.
 #     Maybe just the .git dir would be enough to do these checks, and this should
 #     make things faster and maybe more stable.
@@ -200,7 +206,7 @@ read -r ANSWER
 			log "Skipping delete of current branch."
 			continue
 		fi
-		git branch -d "$B" || { FAILED=true; }
+		git branch --quiet --delete "$B" || { FAILED=true; }
 	done
 }
 if $FAILED; then
