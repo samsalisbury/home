@@ -23,7 +23,7 @@ default: test
 ALL_PACKAGES := ./...
 
 check/compile:
-	$(call QUIET_UNLESS_FAIL,Compilation, go build $(ALL_PACKAGES))
+	$(call QUIET_UNLESS_FAIL,Compilation, go build -o /dev/null $(ALL_PACKAGES))
 	$(call QUIET_UNLESS_FAIL,Test compilation, go test -exec true $(ALL_PACKAGES))
 .PHONY: check/compile
 
