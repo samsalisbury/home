@@ -37,11 +37,13 @@ call plug#begin()
 
 	" Code completion and linters
 	Plug 'dense-analysis/ale'
-	Plug 'hankei6km/ale-linter-actionlint.vim'
+	" Plug 'hankei6km/ale-linter-actionlint.vim'
+	
+	Plug 'prabirshrestha/vim-lsp'
 
 	Plug 'Shougo/context_filetype.vim' " Required by deoplete due to bug.
 	if has('nvim')
-		Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+		"Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 	else
 		Plug 'Shougo/deoplete.nvim'
 		Plug 'roxma/nvim-yarp'
@@ -53,8 +55,6 @@ call plug#begin()
 	Plug 'aliou/bats.vim'
 
 	" Golang specific
-	"Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', 'do': ':GoUpdateBinaries', }
-	"Plug 'fatih/vim-go', { 'tag': 'v1.24-rc.1', }
 	Plug 'fatih/vim-go'
 
 	" Rust
@@ -159,6 +159,13 @@ highlight SignColumn guibg=lightgrey
 """" ale config
 let g:ale_linters = { 'go': ['gopls'], 'vim': ['vint'], 'yaml': ['actionlint']}
 let g:ale_sh_shellcheck_options = '-x'
+let g:ale_lint_delay = 0.2
+let g_ale_virtualtext_delay = 0.2
+
+let g:lsp_diagnostics_virtual_text_delay = 300
+let g:lsp_diagnostics_update_in_insert = 1
+
+
 "" Use tab to cycle through completions.
 "inoremap <silent><expr> <Tab> pumvisible() ? "\<C-n>" : "\<TAB>"
 "" Use shift tab to cycle backwards through completions.
@@ -180,13 +187,13 @@ let g:ale_sh_shellcheck_options = '-x'
 "let g:syntastic_filetype_map = { "bats": "sh" }
 """"
 
-""" deoplete config
-let g:deoplete#enable_at_startup = 1
-" use ale as deoplete source
-call deoplete#custom#option('sources', { '_': ['ale', ], })
-" <TAB>: completion.
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-""" deoplete end
+"""" deoplete config
+"let g:deoplete#enable_at_startup = 1
+"" use ale as deoplete source
+"call deoplete#custom#option('sources', { '_': ['ale', ], })
+"" <TAB>: completion.
+"inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
+"""" deoplete end
 
 """ vim-go config
 let g:go_fmt_command = "goimports"
