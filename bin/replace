@@ -11,6 +11,11 @@ set -Eeuo pipefail
 SED_COMMAND="$1"
 shift
 
+if [[ "$#" == 0 ]]; then
+	echo "==> ERROR: Please specify which files to operate on."
+	exit 1
+fi
+
 echo "==> Replacing in named files..."
 sed -i.bak -E "$SED_COMMAND" "$@" || {
 	echo "==> ERROR: sed failed"
