@@ -11,6 +11,7 @@ return {
     },
   },
   -- Override lualine to light colours
+  --
   {
     "nvim-lualine/lualine.nvim",
     opts = {
@@ -19,6 +20,5 @@ return {
       },
     },
   },
-
   { "echasnovski/mini.colors" },
 }
