@@ -292,6 +292,8 @@ hi(0, "NoiceSplitBorder", { bg = "#eceef1", ctermbg = 255, ctermfg = 255, fg = "
 hi(0, "NoiceVirtualText", { ctermfg = 4, fg = "#add8e6" })
 hi(0, "NonText", { bg = "#ffffff", ctermbg = 231, ctermfg = 250, fg = "#babbbc" })
 hi(0, "Normal", { bg = "#ffffff", ctermbg = 231, ctermfg = 235, fg = "#24292e" })
+hi(0, "NormalFloat", { bg = "#edeeed", ctermbg = 231, ctermfg = 235, fg = "#24292e" })
+hi(0, "FloatBorder", { bg = "#24292e", ctermbg = 231, ctermfg = 235, fg = "#24292e" })
 hi(0, "NotifyDEBUGBorder", { fg = "#8b8b8b" })
 hi(0, "NotifyDEBUGIcon", { fg = "#8b8b8b" })
 hi(0, "NotifyDEBUGTitle", { fg = "#8b8b8b" })
