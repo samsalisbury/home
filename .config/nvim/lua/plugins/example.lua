@@ -9,14 +9,14 @@ if true then return {} end
 -- * disable/enabled LazyVim plugins
 -- * override the configuration of LazyVim plugins
 return {
-  -- add gruvbox
-  { "ellisonleao/gruvbox.nvim" },
+  -- add github theme
+  { "projekt0n/github-nvim-theme" },
 
-  -- Configure LazyVim to load gruvbox
+  -- Configure LazyVim to load github theme
   {
     "LazyVim/LazyVim",
     opts = {
-      colorscheme = "gruvbox",
+      colorscheme = "github_light",
     },
   },
 
