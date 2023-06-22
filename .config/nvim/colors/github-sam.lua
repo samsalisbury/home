@@ -132,7 +132,7 @@ hi(0, "Cursor", { bg = "#24292e", ctermbg = 235, ctermfg = 231, fg = "#ffffff" }
 hi(0, "CursorColumn", { bg = "#fffbdd", ctermbg = 230 })
 hi(0, "CursorIM", { link = "Cursor" })
 hi(0, "CursorLine", { bg = "#fffbdd", ctermbg = 230 })
-hi(0, "CursorLineNr", { bg = "#fff5b1", ctermbg = 229, ctermfg = 243, fg = "#76787b" })
+hi(0, "CursorLineNr", { bg = "#edeeed", ctermbg = 229, ctermfg = 243, fg = "#76787b" })
 hi(0, "Define", { ctermfg = 91, fg = "#6f42c1" })
 hi(0, "Delimiter", { link = "ghNormalNoBg" })
 hi(0, "DiffAdd", { bg = "#e6ffed", ctermbg = 85 })
