@@ -41,6 +41,10 @@ set_terminal_palette() {
 	echo "$MODE" > "$PALETTE_STATE"
 
 	# Tell all nvims to update appearance.
+	nvim-remote tell-all "<ESC>:colorscheme $COLORSCHEME<CR>:set background=$BACKGROUND<CR>"
+	#
+	#
+	#
 	# shellcheck disable=SC2086
 	for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
 
@@ -107,6 +111,8 @@ light() {
 	STATUS_BG=green
 	STATUS_FG=white
 	STATUS_SELECTED="brightwhite"
+	BACKGROUND=light
+	COLORSCHEME=github-sam
 	set_terminal_palette
 	match-brightness || true
 }
@@ -123,6 +129,8 @@ dark() {
 	STATUS_BG=green
 	STATUS_FG=darkgreen
 	STATUS_SELECTED="$BLACK"
+	BACKGROUND=dark
+	COLORSCHEME=github
 	set_terminal_palette
 	match-brightness || true
 }
