@@ -7,6 +7,9 @@ tap "srkomodo/tap"
 tap "microsoft/git"
 tap "zegervdv/zathura"
 
+# epk/epk has the patched sf-mono nerdfont
+tap "epk/epk"
+
 brew "act"
 brew "actionlint"
 brew "awscli"
@@ -83,6 +86,7 @@ cask "docker"
 cask "finicky"
 cask "font-hack-nerd-font"
 cask "font-liberation-nerd-font"
+cask "font-sf-mono-nerd-font"
 cask "microsoft/git/git-credential-manager-core"
 cask "keybase"
 cask "keycastr"
