@@ -5,3 +5,6 @@
 vim.opt.relativenumber = false
 vim.opt.termguicolors = true
 vim.opt.tabstop = 4
+vim.opt.expandtab = false
+vim.opt.shiftwidth = 4
+vim.opt.list = false
