@@ -42,7 +42,10 @@ brew "gron"
 brew "gum"
 brew "httpie"
 brew "ical-buddy"
+brew "jid" # json incremental digger
+brew "jiq" # json interactive digger using jq
 brew "jfrog-cli"
+brew "jless"
 brew "make"
 brew "markdown"
 brew "moreutils"
