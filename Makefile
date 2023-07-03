@@ -24,14 +24,20 @@ brew/outdated:
 	@brew-tools outdated_brewfile
 
 brew/upgrade:
+	@brew unlink moreutils
+	@brew unlink parallel
 	@brew-tools upgrade_outdated_brewfile_deps
 	@$(FIX_PARALLEL_MOREUTILS)
 
 brew/install:
+	@brew unlink moreutils
+	@brew unlink parallel
 	@brew-tools install
 	@$(FIX_PARALLEL_MOREUTILS)
 
 brew/fix:
+	@brew unlink moreutils
+	@brew unlink parallel
 	@$(FIX_PARALLEL_MOREUTILS)
 
 upgrade-all: BREW_FLAGS :=
