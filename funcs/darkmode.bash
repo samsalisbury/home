@@ -17,6 +17,14 @@ system-palette() {
 	[ "$PALETTE" = "Light" ] && light
 }
 
+get-darkmode() {
+	local PALETTE
+	PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || \
+		cat "$PALETTE_STATE" || \
+		echo Light)"
+	echo "$PALETTE"
+}
+
 reload-darkmode() {
 	local NAME
 	NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -40,13 +48,17 @@ set_macos_palette() {
 set_terminal_palette() {
 	echo "$MODE" > "$PALETTE_STATE"
 
-	# Tell all nvims to update appearance.
+	# Tell all nvims to update colorscheme.
 	nvim-remote tell-all "<ESC>:colorscheme $COLORSCHEME<CR>:set background=$BACKGROUND<CR>"
+	# Tell all nvimst to update lualine colorscheme.
+	LUA="require('lualine').setup( { options = vim.tbl_deep_extend('force', require('lualine').get_config(), {theme='$LUALINE_THEME'}) } )"
+	nvim-remote tell-all "<ESC>:lua $LUA<CR>"
+
 	#
 	#
 	#
 	# shellcheck disable=SC2086
-	for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
+	#for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
 
 	local WINDOW_STYLE="bg=$BG fg=$FG"
 
@@ -67,6 +79,12 @@ set_terminal_palette() {
 	EOF
 
 	tmux source-file "$PALETTE_STATE_TMUX"
+
+	osascript <<-EOF
+		tell application "Terminal"
+		  set background color of selected tab of window 1 to $TERMINAL_BG
+    	end tell
+	EOF
 
 	# Set the style for each open window first.
 	ORIG_WINDOW="$(tmux display-message -p '#I')"
@@ -113,6 +131,8 @@ light() {
 	STATUS_SELECTED="brightwhite"
 	BACKGROUND=light
 	COLORSCHEME=github-sam
+	LUALINE_THEME="ayu_light"
+	TERMINAL_BG="{65000, 65000, 65000}"
 	set_terminal_palette
 	match-brightness || true
 }
@@ -131,6 +151,8 @@ dark() {
 	STATUS_SELECTED="$BLACK"
 	BACKGROUND=dark
 	COLORSCHEME=github
+	TERMINAL_BG="{0, 0, 0}"
+	LUALINE_THEME="tokyonight"
 	set_terminal_palette
 	match-brightness || true
 }

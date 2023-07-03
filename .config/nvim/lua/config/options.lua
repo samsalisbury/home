@@ -8,3 +8,5 @@ vim.opt.tabstop = 4
 vim.opt.expandtab = false
 vim.opt.shiftwidth = 4
 vim.opt.list = false
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
