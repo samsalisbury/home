@@ -3,7 +3,8 @@
 	name = Sam Salisbury
 	signingkey = 9A84616C
 [credential]
-	helper = osxkeychain
+	helper = 
+	helper = /usr/local/share/gcm-core/git-credential-manager
 [push]
 	default = simple
 [alias]
@@ -22,8 +23,10 @@
 	wsErrorHighlight = all
 [log]
 	showSignature = false
-[url "git@github.com:"]
-	insteadOf = https://github.com/
+#[url "git@github.com:"]
+#	insteadOf = https://github.com/
+[url "https://github.com/"]
+	insteadOf = git@github.com: 
 [rerere]
 	enabled = true
 [difftool "Kaleidoscope"]
@@ -42,3 +45,5 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[credential "https://dev.azure.com"]
+	useHttpPath = true
