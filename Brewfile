@@ -7,8 +7,8 @@ tap "srkomodo/tap"
 tap "microsoft/git"
 tap "zegervdv/zathura"
 
-# epk/epk has the patched sf-mono nerdfont
-tap "epk/epk"
+# shaunsingh/SFMono-Nerd-Font-Ligaturized
+tap "shaunsingh/SFMono-Nerd-Font-Ligaturized"
 
 brew "act"
 brew "actionlint"
@@ -52,10 +52,12 @@ brew "mas"
 brew "neovim"
 brew "openssl"
 brew "pandoc"
+brew "par" # paragraph formatting
 brew "parallel", args: ["force", "overwrite"]
 brew "pinentry-mac"
 brew "podman"
 # Don't install python here; use pyenv to install it.
+brew "prettier"
 brew "python-yq"
 brew "readline"
 brew "reattach-to-user-namespace"
@@ -90,7 +92,7 @@ cask "docker"
 cask "finicky"
 cask "font-hack-nerd-font"
 cask "font-liberation-nerd-font"
-cask "font-sf-mono-nerd-font"
+cask "font-sf-mono-nerd-font-ligaturized"
 cask "microsoft/git/git-credential-manager-core"
 cask "keybase"
 cask "keycastr"
@@ -105,6 +107,7 @@ cask "parallels"
 cask "vlc"
 cask "vscodium"
 cask "wkhtmltopdf"
+cask "zettlr"
 
 mas "1Password 7",                 id: 1333542190
 mas "Adblock Plus for Safari ABP", id: 1432731683
