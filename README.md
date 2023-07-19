@@ -3,19 +3,8 @@
 To set this up on a new machine:
 
 1. Install bash and git.
-2. Run this command:
-```
-init() {
-	export GIT_DIR=home.git GIT_WORK_TREE="$HOME"
-	git init .
-	git remote add origin https://github.com/samsalisbury/home
-	git fetch --all
-	git reset --hard origin/master
-}
-init
-```
+2. Run `curl -fsSL https://raw.githubusercontent.com/samsalisbury/home/master/setup | bash`
 3. Start a new bash shell, and everything should be there.
-4. Launch neovim and wait while it loads all plugins and dev tools.
 
 To make changes:
 
