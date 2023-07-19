@@ -2,6 +2,22 @@
 
 PATH="/opt/homebrew/bin:$PATH"
 
+installed() { 
+	command -v "$1" > /dev/null 2>&1 && return 0
+}
+
+_req_tool() {
+	installed "$1" && return 0
+	echo "Please install $1" >&2
+}
+
+if [[ "$(uname)" == "Darwin" ]]; then
+	_req_tool gdate
+else
+	gdate() { date "$@"; }
+fi
+_req_tool bc
+
 # Some scripts and Makefiles this to decide whether to clear the screen.
 export AUTOCLEAR=1
 
