@@ -6,9 +6,22 @@ installed() {
 	command -v "$1" > /dev/null 2>&1 && return 0
 }
 
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+linux=false
+darwin=false
+if [[ "$OS" == "linux" ]]; then
+	linux=true
+elif [[ "$OS" == "darwin" ]]; then
+	darwin=true
+fi
+
 _req_tool() {
 	installed "$1" && return 0
-	echo "Please install $1" >&2
+	if $linux; then
+		apt install "$1"
+	else
+		echo "Please install $1" >&2
+	fi
 }
 
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -256,3 +269,7 @@ end="$(gdate +%s.%N)"
 
 echo -n ".bash_profile runtime: "
 echo "$end - $start" | bc -l
+
+unset linux darwin
+
+eval "$(devbox global shellenv)"
