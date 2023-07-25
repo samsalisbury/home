@@ -272,4 +272,31 @@ echo "$end - $start" | bc -l
 
 unset linux darwin
 
-eval "$(devbox global shellenv)"
+export PATH="$HOME/.local/share/bin:$PATH"
+
+export NIX_IGNORE_SYMLINK_STORE=1
+
+if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
+	# Install nix
+	./init/nix.modified
+	# Copy current nix stuff to /nix
+	rsync -a --delete "$HOME/.nix/" /nix
+	# Create a function to add and sync using devbox
+	add() {
+		echo "===> Adding $1 with devbox..."
+		devbox global add "$@"
+		echo "===> Syncing nix to ~/.nix"
+		rsync -a --delete /nix/ "$HOME/.nix"
+		if ! git diff --exit-code ~/.local/share/devbox/global/default/; then
+			echo "Packages changed; please commit ~/.local/share/devbox/global/default/"
+		fi
+	}
+fi
+
+if command -v devbox > /dev/null 2>&1; then
+	eval "$(devbox global shellenv)"
+else
+	echo "Please install devbox to .local/share/bin"
+fi
+
+#if [ -e /root/.nix-profile/etc/profile.d/nix.sh ]; then . /root/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer

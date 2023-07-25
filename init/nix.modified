@@ -1,0 +1,140 @@
+#!/bin/sh
+
+# This script installs the Nix package manager on your system by
+# downloading a binary distribution and running its installer script
+# (which in turn creates and populates /nix).
+
+{ # Prevent execution if this script was only partially downloaded
+oops() {
+    echo "$0:" "$@" >&2
+    exit 1
+}
+
+umask 0022
+
+#tmpDir="$(mktemp -d -t nix-binary-tarball-unpack.XXXXXXXXXX || \
+#          oops "Can't create temporary directory for downloading the Nix binary tarball")"
+
+tmpDir=".local/cache"
+mkdir -p "$tmpDir"
+
+cleanup() {
+	:
+    #rm -rf "$tmpDir"
+}
+trap cleanup EXIT INT QUIT TERM
+
+require_util() {
+    command -v "$1" > /dev/null 2>&1 ||
+        oops "you do not have '$1' installed, which I need to $2"
+}
+
+case "$(uname -s).$(uname -m)" in
+    Linux.x86_64)
+        hash=c5b55a36129a106a53f21a8aa0c51807e020521b3e268e597f1efb3ce81e2722
+        path=a6dcplzwraix122kc2lhwbs2yg5bpijd/nix-2.16.1-x86_64-linux.tar.xz
+        system=x86_64-linux
+        ;;
+    Linux.i?86)
+        hash=0913601de538d03bcc32d91bb72c9bf9855da8e00a758f3e941b571524af1fc9
+        path=6fck31hycw825rqphblbchy8hkasbac3/nix-2.16.1-i686-linux.tar.xz
+        system=i686-linux
+        ;;
+    Linux.aarch64)
+        hash=84248b7c41aabaa06d065edad3b2bfc58aa18053d3ffdcd4c0ea752f150bf3ec
+        path=qcg5f5lr9i4w5dfqa8gd9glf2p5igrkv/nix-2.16.1-aarch64-linux.tar.xz
+        system=aarch64-linux
+        ;;
+    Linux.armv6l)
+        hash=df01202e69f19687d001f758c1499f06c7bd993efc46fafc7c86facd51aa6778
+        path=qiinf28ihnhhh9w1kd1hx3nl91d8lhw6/nix-2.16.1-armv6l-linux.tar.xz
+        system=armv6l-linux
+        ;;
+    Linux.armv7l)
+        hash=e08401c69f2a82cc7c4feee4a75cd1f7bf686feaf2b11d246e428881ffc3d460
+        path=4j5390grnr0sg05jfz3mvlzrvpfwcy2d/nix-2.16.1-armv7l-linux.tar.xz
+        system=armv7l-linux
+        ;;
+    Darwin.x86_64)
+        hash=6de499e5d508ea911bfd11246ac94b97b537b79fcae89f405abbfbc35be97fd9
+        path=lxq4bxxv9z1wd25547ap92ang80fbd53/nix-2.16.1-x86_64-darwin.tar.xz
+        system=x86_64-darwin
+        ;;
+    Darwin.arm64|Darwin.aarch64)
+        hash=6d3e3ca64851938c1e71a79d82db7aad241338984329e719cb33fd56bc659fb5
+        path=9idkxjddpkg444nrkl63glg70f9p8shj/nix-2.16.1-aarch64-darwin.tar.xz
+        system=aarch64-darwin
+        ;;
+    *) oops "sorry, there is no binary distribution of Nix for your platform";;
+esac
+
+# Use this command-line option to fetch the tarballs using nar-serve or Cachix
+if [ "${1:-}" = "--tarball-url-prefix" ]; then
+    if [ -z "${2:-}" ]; then
+        oops "missing argument for --tarball-url-prefix"
+    fi
+    url=${2}/${path}
+    shift 2
+else
+    url=https://releases.nixos.org/nix/nix-2.16.1/nix-2.16.1-$system.tar.xz
+fi
+
+tarball=$tmpDir/nix-2.16.1-$system.tar.xz
+
+require_util tar "unpack the binary tarball"
+if [ "$(uname -s)" != "Darwin" ]; then
+    require_util xz "unpack the binary tarball"
+fi
+
+if command -v curl > /dev/null 2>&1; then
+    fetch_inner() { curl --fail -L "$1" -o "$2"; }
+elif command -v wget > /dev/null 2>&1; then
+    fetch_inner() { wget "$1" -O "$2"; }
+else
+    oops "you don't have wget or curl installed, which I need to download the binary tarball"
+fi
+
+fetch() {
+	if test -f "$2"; then
+		echo "already downloaded $2"
+		return 0
+	fi
+	echo "downloading '$1' to '$2'..."
+	if ! fetch_inner "$1" "$2"; then
+		echo "failed to download '$1'"
+		return 1
+	fi
+	echo "downloaded '$1' to '$2'"
+}
+
+echo "downloading Nix 2.16.1 binary tarball for $system from '$url' to '$tmpDir'..."
+fetch "$url" "$tarball" || oops "failed to download '$url'"
+
+if command -v sha256sum > /dev/null 2>&1; then
+    hash2="$(sha256sum -b "$tarball" | cut -c1-64)"
+elif command -v shasum > /dev/null 2>&1; then
+    hash2="$(shasum -a 256 -b "$tarball" | cut -c1-64)"
+elif command -v openssl > /dev/null 2>&1; then
+    hash2="$(openssl dgst -r -sha256 "$tarball" | cut -c1-64)"
+else
+    oops "cannot verify the SHA-256 hash of '$url'; you need one of 'shasum', 'sha256sum', or 'openssl'"
+fi
+
+if [ "$hash" != "$hash2" ]; then
+    oops "SHA-256 hash mismatch in '$url'; expected $hash, got $hash2"
+fi
+
+
+unpack="$(mktemp -d -t nix-binary-tarball-unpack.XXXXXXXXXX || \
+          oops "Can't create temporary directory for unpacking the Nix binary tarball")"
+
+mkdir -p "$unpack"
+tar -xJf "$tarball" -C "$unpack" || oops "failed to unpack '$url'"
+
+script=$(echo "$unpack"/*/install)
+
+[ -e "$script" ] || oops "installation script is missing from the binary tarball!"
+export INVOKED_FROM_INSTALL_IN=1
+"$script" "$@"
+
+} # End of wrapping
