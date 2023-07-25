@@ -1,0 +1,17 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "bc@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#bc",
+      "source": "devbox-search",
+      "version": "1.07.1"
+    },
+    "jq@latest": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#jq",
+      "source": "devbox-search",
+      "version": "1.6"
+    }
+  }
+}
