@@ -145,14 +145,6 @@ alias gs='git status'
 alias gup='git push'
 alias gupnv='git push --no-verify'
 
-# Git Dotfiles
-source "$HOME/funcs/git-dotfiles.bash"
-git_dotfiles_configure_shell_hook() {
-	# Override 'ga' func to add only modified files by default.
-	ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
-}
-git_dotfiles home "$HOME"
-git_dotfiles system /
 
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -281,17 +273,28 @@ if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
 	./init/nix.modified
 	# Copy current nix stuff to /nix
 	rsync -a --delete "$HOME/.nix/" /nix
+fi
+
 	# Create a function to add and sync using devbox
 	add() {
 		echo "===> Adding $1 with devbox..."
-		devbox global add "$@"
-		echo "===> Syncing nix to ~/.nix"
-		rsync -a --delete /nix/ "$HOME/.nix"
-		if ! git diff --exit-code ~/.local/share/devbox/global/default/; then
-			echo "Packages changed; please commit ~/.local/share/devbox/global/default/"
-		fi
+		devbox global add "$@" || return $?
+		devbox_sync
 	}
-fi
+
+	remove() {
+		echo "===> Removing $1 with devbox..."
+		devbox global rm "$@" || return $?
+		devbox_sync
+	}
+	
+
+	devbox_sync() {
+		echo "===> Syncing nix to ~/.nix"
+		rsync -a --delete --stats --info=progress2 /nix/ "$HOME/.nix" | grep -E '(^Number)|transferred'
+		echo "Packages changed; please commit ~/.local/share/devbox/global/default/"
+	}
+
 
 if command -v devbox > /dev/null 2>&1; then
 	eval "$(devbox global shellenv)"
@@ -299,4 +302,15 @@ else
 	echo "Please install devbox to .local/share/bin"
 fi
 
-#if [ -e /root/.nix-profile/etc/profile.d/nix.sh ]; then . /root/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+	source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+fi
+
+# Git Dotfiles
+source "$HOME/funcs/git-dotfiles.bash"
+git_dotfiles_configure_shell_hook() {
+	# Override 'ga' func to add only modified files by default.
+	ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
+}
+git_dotfiles home "$HOME"
+git_dotfiles system /
