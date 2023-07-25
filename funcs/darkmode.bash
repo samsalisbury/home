@@ -126,7 +126,7 @@ macdark() {
 
 # light sets tmux to light mode.
 light() {
-	reload-darkmode
+	tmux setenv DARKMODE Light
 	maclight
 	MODE=Light
 	BG="#FFFFFF"
@@ -146,7 +146,7 @@ light() {
 
 # light sets tmux to dark mode.
 dark() {
-	reload-darkmode
+	tmux setenv DARKMODE Dark
 	local BLACK="#121212"
 	macdark
 	MODE=Dark
@@ -164,3 +164,11 @@ dark() {
 	set_terminal_palette
 	match-brightness >/dev/null 2>&1 || true
 }
+
+tmux-getenv() {
+	tmux show-environment | grep -E "^$1=" | cut -d= -f2
+}
+
+if [[ -z "$(tmux-getenv DARKMODE)" ]]; then
+	dark
+fi
