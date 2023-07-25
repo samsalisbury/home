@@ -2,6 +2,8 @@
 _gdf_log() { echo "git_dotfiles: $*" 1>&2; }
 _gdf_err() { _gdf_log "error: $*"; echo 1; }
 
+GDF_SHELL=(/bin/bash -l)
+
 # git_dotfiles is used for managing dotfiles directly using git.
 # 
 # It creates an alias which launches a new bash shell configured to use
@@ -38,7 +40,7 @@ _gdf_launch_shell() { local WORKTREE="${1:?}"; CUSTOM_DOT_GIT="${2:?}"
 	local SUDO
 	[[ -w "$WORKTREE" ]] || SUDO=sudo
 	_gdf_init_repo "$WORKTREE" "$CUSTOM_DOT_GIT" || return 1
-	$SUDO /usr/bin/env GIT_DIR="$CUSTOM_DOT_GIT" GIT_WORK_TREE="$WORKTREE" bash -l
+	$SUDO /usr/bin/env GIT_DIR="$CUSTOM_DOT_GIT" GIT_WORK_TREE="$WORKTREE" "${GDF_SHELL[@]}"
 }
 
 # _gdf_init_repo ensures the worktree is set up as a git repo. It uses subshell semantics
