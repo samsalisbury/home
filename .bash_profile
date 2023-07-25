@@ -271,28 +271,46 @@ export NIX_IGNORE_SYMLINK_STORE=1
 if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
 	# Install nix
 	./init/nix.modified
-	# Copy current nix stuff to /nix
-	rsync -a --delete "$HOME/.nix/" /nix
+	devbox_restore
 fi
 
 	# Create a function to add and sync using devbox
 	add() {
 		echo "===> Adding $1 with devbox..."
 		devbox global add "$@" || return $?
-		devbox_sync
+		devbox_save
 	}
 
 	remove() {
 		echo "===> Removing $1 with devbox..."
 		devbox global rm "$@" || return $?
-		devbox_sync
+		devbox_save
 	}
 	
-
 	devbox_sync() {
-		echo "===> Syncing nix to ~/.nix"
-		rsync -a --delete --stats --info=progress2 /nix/ "$HOME/.nix" | grep -E '(^Number)|transferred'
+		FROM="$1"
+		TO="$2"
+		echo "===> Syncing $FROM to $TO"
+		rsync -a --delete --stats --info=progress2 "$FROM" "$TO" | grep -E '(^Number)|transferred'
+	}
+
+	devbox_save() {
+		if [[ ! -f /nix-restored ]]; then
+			echo "Not saving as /nix-restored missing."
+			return 1
+		fi
+		devbox_sync /nix/ ~/.nix
 		echo "Packages changed; please commit ~/.local/share/devbox/global/default/"
+	}
+
+	devbox_restore() {
+		if [[ -f /nix-restored ]]; then
+			echo "Packages already restored."
+			return 0
+		fi
+		devbox_sync ~/.nix/ /nix
+		touch /nix-restored
+		echo "Packages restored."
 	}
 
 
