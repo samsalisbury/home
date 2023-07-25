@@ -128,10 +128,9 @@ fi
 unpack="$(mktemp -d -t nix-binary-tarball-unpack.XXXXXXXXXX || \
           oops "Can't create temporary directory for unpacking the Nix binary tarball")"
 
-mkdir -p "$unpack"
-tar -xJf "$tarball" -C "$unpack" || oops "failed to unpack '$url'"
+tar -xJf "$tarball" -C "$unpack" || oops "failed to unpack '$tarball'"
 
-script=$(echo "$unpack"/*/install)
+script=$(echo "$unpack"/*/install) || oops "failed to get install script"
 
 [ -e "$script" ] || oops "installation script is missing from the binary tarball!"
 export INVOKED_FROM_INSTALL_IN=1
