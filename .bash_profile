@@ -268,12 +268,6 @@ export PATH="$HOME/.local/share/bin:$PATH"
 
 export NIX_IGNORE_SYMLINK_STORE=1
 
-if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
-	# Install nix
-	NIX_INSTALLER_YES=1 ./init/nix.modified --daemon
-	devbox_restore
-fi
-
 	# Create a function to add and sync using devbox
 	add() {
 		echo "===> Adding $1 with devbox..."
@@ -313,6 +307,12 @@ fi
 		echo "Packages restored."
 	}
 
+
+if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
+	# Install nix
+	NIX_INSTALLER_YES=1 ./init/nix.modified --daemon
+	devbox_restore
+fi
 
 if command -v devbox > /dev/null 2>&1; then
 	eval "$(devbox global shellenv)"
