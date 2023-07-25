@@ -1,7 +1,10 @@
 {
   "packages": [
     "bc@latest",
-    "jq@latest"
+    "jq@latest",
+    "gh@latest",
+    "which@latest",
+    "parallel@latest"
   ],
   "shell": {
     "init_hook": [
