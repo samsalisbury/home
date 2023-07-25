@@ -3,7 +3,6 @@
     "bc@latest",
     "jq@latest",
     "gh@latest",
-    "which@latest",
     "parallel@latest"
   ],
   "shell": {

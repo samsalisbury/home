@@ -24,12 +24,6 @@
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#parallel",
       "source": "devbox-search",
       "version": "20230622"
-    },
-    "which@latest": {
-      "last_modified": "2023-05-07T06:59:10Z",
-      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#which",
-      "source": "devbox-search",
-      "version": "2.21"
     }
   }
 }
