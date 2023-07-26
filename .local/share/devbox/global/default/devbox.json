@@ -3,7 +3,8 @@
     "bc@latest",
     "jq@latest",
     "gh@latest",
-    "parallel@latest"
+    "parallel@latest",
+    "ag@latest"
   ],
   "shell": {
     "init_hook": [

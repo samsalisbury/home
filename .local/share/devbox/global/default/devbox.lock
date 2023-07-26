@@ -1,6 +1,12 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "ag@latest": {
+      "last_modified": "2022-02-25T05:00:09Z",
+      "resolved": "github:NixOS/nixpkgs/056c34167d3210a674ef21691afbbce1ed63f8ca#ag",
+      "source": "devbox-search",
+      "version": "2.2.0"
+    },
     "bc@latest": {
       "last_modified": "2023-05-07T06:59:10Z",
       "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#bc",
