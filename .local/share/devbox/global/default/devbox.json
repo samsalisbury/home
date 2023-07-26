@@ -4,7 +4,11 @@
     "jq@latest",
     "gh@latest",
     "parallel@latest",
-    "ag@latest"
+    "ag@latest",
+    "go@1.20.5",
+    "coreutils@latest",
+    "moreutils@latest",
+    "util-linux@latest"
   ],
   "shell": {
     "init_hook": [
