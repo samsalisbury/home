@@ -1,15 +1,15 @@
 
 # Create a function to add and sync using devbox
 add() {
-	echo "===> Adding $1 with devbox..."
+	echo "===> Adding $* with devbox..."
 	devbox global add "$@" || return $?
-	devbox_save
+	#devbox_save
 }
 
 remove() {
-	echo "===> Removing $1 with devbox..."
+	echo "===> Removing $* with devbox..."
 	devbox global rm "$@" || return $?
-	devbox_save
+	#devbox_save
 }
 
 devbox_sync() {
@@ -49,12 +49,12 @@ install_nix() (
 	
 	log() { printf '%s\n' "$*" 1>&2; }
 	
-	if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
+	if [[ ! -d /nix ]]; then
 		log "==> Setting up nix... (Logs in $LOGFILE)"
 		# Install nix
 		time NIX_INSTALLER_YES=1 ./init/nix.modified --daemon > $LOGFILE 2>&1
-		log "==> Restoring packages..."
-		time devbox_restore
+		#log "==> Restoring packages..."
+		#time devbox_restore
 	fi	
 )
 
@@ -64,6 +64,7 @@ setup_devbox_env() {
 	fi
 	
 	if command -v devbox > /dev/null 2>&1; then
+		devbox global install
 		eval "$(devbox global shellenv)"
 	else
 		echo "Please install devbox to .local/share/bin"
