@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 PATH="/opt/homebrew/bin:$PATH"
+PATH="$HOME/.local/share/bin:$PATH"
+
+source "$HOME/funcs/darkmode.bash"
 
 installed() { 
 	command -v "$1" > /dev/null 2>&1 && return 0
@@ -14,10 +17,6 @@ if [[ "$OS" == "linux" ]]; then
 elif [[ "$OS" == "darwin" ]]; then
 	darwin=true
 fi
-
-$linux && {
-	source ./init/setup-nix-devbox.bash
-}
 
 _req_tool() {
 	installed "$1" && return 0
@@ -39,6 +38,11 @@ _req_tool bc
 export AUTOCLEAR=1
 
 start="$(gdate +%s.%N)"
+
+
+$linux && {
+	source ./init/setup-nix-devbox.bash
+}
 
 # Disable warnings about not being able to follow source includes.
 # shellcheck disable=SC1090,SC1091
@@ -234,7 +238,6 @@ rec() {
 	time grep -aFC 200 "$1" /dev/dm-2 > "$2.raw"
 }
 
-source "$HOME/funcs/darkmode.bash"
 source "$HOME/funcs/aliascompletion.bash"
 source "$HOME/funcs/new.bash"
 
@@ -267,8 +270,6 @@ echo -n ".bash_profile runtime: "
 echo "$end - $start" | bc -l
 
 unset linux darwin
-
-export PATH="$HOME/.local/share/bin:$PATH"
 
 # Git Dotfiles
 source "$HOME/funcs/git-dotfiles.bash"
