@@ -40,13 +40,16 @@ devbox_restore() {
 
 install_nix() (
 	export NIX_IGNORE_SYMLINK_STORE=1
+
+	LOGDIR=~/.local/share/logs
+	mkdir -p $LOGDIR
+
+	LOGFILE=$LOGDIR/nix-install.log
 	
-	mkdir -p ~/.local/share/logs
 	
 	log() { printf '%s\n' "$*" 1>&2; }
 	
 	if [[ ! -d /nix ]] && [[ -d "$HOME/.nix" ]]; then
-		LOGFILE=.local/share/log/nix-install.log
 		log "==> Setting up nix... (Logs in $LOGFILE)"
 		# Install nix
 		time NIX_INSTALLER_YES=1 ./init/nix.modified --daemon > $LOGFILE 2>&1
@@ -56,9 +59,9 @@ install_nix() (
 )
 
 setup_devbox_env() {
-	#if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-	#	source "$HOME/.nix-profile/etc/profile.d/nix.sh"
-	#fi
+	if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
+		source "$HOME/.nix-profile/etc/profile.d/nix.sh"
+	fi
 	
 	if command -v devbox > /dev/null 2>&1; then
 		eval "$(devbox global shellenv)"
