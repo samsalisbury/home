@@ -14,7 +14,8 @@
     "mosh@latest",
     "virtualenv@latest",
     "hyperfine@latest",
-    "tmux@latest"
+    "tmux@latest",
+    "nerdfonts@latest"
   ],
   "shell": {
     "init_hook": [

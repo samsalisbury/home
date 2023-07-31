@@ -61,6 +61,12 @@
       "source": "devbox-search",
       "version": "0.9.1"
     },
+    "nerdfonts@latest": {
+      "last_modified": "2023-07-25T23:32:12Z",
+      "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#nerdfonts",
+      "source": "devbox-search",
+      "version": "3.0.2"
+    },
     "parallel@latest": {
       "last_modified": "2023-06-29T16:20:38Z",
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#parallel",
