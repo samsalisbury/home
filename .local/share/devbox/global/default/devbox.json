@@ -13,7 +13,8 @@
     "pyenv@latest",
     "mosh@latest",
     "virtualenv@latest",
-    "hyperfine@latest"
+    "hyperfine@latest",
+    "tmux@latest"
   ],
   "shell": {
     "init_hook": [

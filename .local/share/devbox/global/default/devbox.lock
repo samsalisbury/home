@@ -73,6 +73,12 @@
       "source": "devbox-search",
       "version": "2.3.23"
     },
+    "tmux@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#tmux",
+      "source": "devbox-search",
+      "version": "3.3a"
+    },
     "util-linux@latest": {
       "last_modified": "2023-05-06T16:57:53Z",
       "resolved": "github:NixOS/nixpkgs/16b3b0c53b1ee8936739f8c588544e7fcec3fc60#util-linux",
