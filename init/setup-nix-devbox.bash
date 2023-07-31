@@ -1,44 +1,9 @@
 
-# Create a function to add and sync using devbox
-add() {
-	echo "===> Adding $* with devbox..."
-	devbox global add "$@" || return $?
-	#devbox_save
-}
-
-remove() {
-	echo "===> Removing $* with devbox..."
-	devbox global rm "$@" || return $?
-	#devbox_save
-}
-
-devbox_sync() {
-	FROM="$1"
-	TO="$2"
-	echo "===> Syncing $FROM to $TO"
-	rsync -a --delete --stats --info=progress2 "$FROM" "$TO" | grep -E '(^Number)|transferred'
-}
-
-devbox_save() {
-	if [[ ! -f /nix-restored ]]; then
-		echo "Not saving as /nix-restored missing."
-		return 1
-	fi
-	devbox_sync /nix/ ~/.nix
-	echo "Packages changed; please commit ~/.local/share/devbox/global/default/"
-}
-
-devbox_restore() {
-	if [[ -f /nix-restored ]]; then
-		echo "Packages already restored."
+install_nix() (
+	if [[ -d /nix ]]; then
 		return 0
 	fi
-	devbox_sync ~/.nix/ /nix
-	touch /nix-restored
-	echo "Packages restored."
-}
 
-install_nix() (
 	export NIX_IGNORE_SYMLINK_STORE=1
 
 	LOGDIR=~/.local/share/logs
@@ -49,13 +14,8 @@ install_nix() (
 	
 	log() { printf '%s\n' "$*" 1>&2; }
 	
-	if [[ ! -d /nix ]]; then
-		log "==> Setting up nix... (Logs in $LOGFILE)"
-		# Install nix
-		time NIX_INSTALLER_YES=1 ./init/nix.modified --daemon > $LOGFILE 2>&1
-		#log "==> Restoring packages..."
-		#time devbox_restore
-	fi	
+	log "==> Setting up nix... (Logs in $LOGFILE)"
+	time NIX_INSTALLER_YES=1 ./init/nix.modified --daemon > $LOGFILE 2>&1
 )
 
 setup_devbox_env() {
@@ -64,7 +24,7 @@ setup_devbox_env() {
 	fi
 	
 	if command -v devbox > /dev/null 2>&1; then
-		devbox global install
+		#devbox global install
 		eval "$(devbox global shellenv)"
 	else
 		echo "Please install devbox to .local/share/bin"
