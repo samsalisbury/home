@@ -1,11 +1,48 @@
 #!/usr/bin/env bash
 
 PATH="/opt/homebrew/bin:$PATH"
+PATH="$HOME/.local/share/bin:$PATH"
+
+source "$HOME/funcs/darkmode.bash"
+
+installed() { 
+	command -v "$1" > /dev/null 2>&1 && return 0
+}
+
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+linux=false
+darwin=false
+if [[ "$OS" == "linux" ]]; then
+	linux=true
+elif [[ "$OS" == "darwin" ]]; then
+	darwin=true
+fi
+
+_req_tool() {
+	installed "$1" && return 0
+	if $linux; then
+		apt install "$1"
+	else
+		echo "Please install $1" >&2
+	fi
+}
+
+if [[ "$(uname)" == "Darwin" ]]; then
+	_req_tool gdate
+else
+	gdate() { date "$@"; }
+fi
+_req_tool bc
 
 # Some scripts and Makefiles this to decide whether to clear the screen.
 export AUTOCLEAR=1
 
 start="$(gdate +%s.%N)"
+
+
+$linux && {
+	source ./init/setup-nix-devbox.bash
+}
 
 # Disable warnings about not being able to follow source includes.
 # shellcheck disable=SC1090,SC1091
@@ -116,14 +153,6 @@ alias gs='git status'
 alias gup='git push'
 alias gupnv='git push --no-verify'
 
-# Git Dotfiles
-source "$HOME/funcs/git-dotfiles.bash"
-git_dotfiles_configure_shell_hook() {
-	# Override 'ga' func to add only modified files by default.
-	ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
-}
-git_dotfiles home "$HOME"
-git_dotfiles system /
 
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -209,7 +238,6 @@ rec() {
 	time grep -aFC 200 "$1" /dev/dm-2 > "$2.raw"
 }
 
-source "$HOME/funcs/darkmode.bash"
 source "$HOME/funcs/aliascompletion.bash"
 source "$HOME/funcs/new.bash"
 
@@ -240,3 +268,14 @@ end="$(gdate +%s.%N)"
 
 echo -n ".bash_profile runtime: "
 echo "$end - $start" | bc -l
+
+unset linux darwin
+
+# Git Dotfiles
+source "$HOME/funcs/git-dotfiles.bash"
+git_dotfiles_configure_shell_hook() {
+	# Override 'ga' func to add only modified files by default.
+	ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
+}
+git_dotfiles home "$HOME"
+git_dotfiles system /

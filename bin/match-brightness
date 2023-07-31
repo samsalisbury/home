@@ -2,6 +2,8 @@
 
 ARG="$1"
 
+command -v ioreg || { echo "Skipping match-brightness: ioreg not found." >&2; exit 0; }
+
 set -euo pipefail
 
 VERBOSE=false

@@ -3,7 +3,7 @@
 To set this up on a new machine:
 
 1. Install bash and git.
-2. Clone this repo: `git clone https://github.com/samsalisbury/home`
+2. Run `curl -fsSL https://raw.githubusercontent.com/samsalisbury/home/master/setup | bash`
 3. Start a new bash shell, and everything should be there.
 
 To make changes:

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# This script is used to bootstrap a new machine.
+# To run it directly:
+#
+# curl -fsSL https://raw.githubusercontent.com/samsalisbury/home/master/setup | sh
+
+set -eu
+init() {
+	export GIT_DIR=home.git GIT_WORK_TREE="$HOME"
+	git init "$HOME"
+	git remote add origin https://github.com/samsalisbury/home
+	git fetch --all
+	git reset --hard origin/master
+	echo "==> All done - open a new shell to begin; Launch nvim to install plugins..."
+}
+
+init

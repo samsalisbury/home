@@ -16,7 +16,7 @@ nvim-remote.main() {
 	"$FUNC" "$@"
 }
 
-# Your functions go here...
+: "${USER:=$(id -un)}"
 
 list-sockets() {
 	pathPattern="*/nvim.$USER/*"

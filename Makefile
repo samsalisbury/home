@@ -8,6 +8,13 @@ help:
 	@echo '  make brew/install   # install missing things'
 	@echo '  make brew/outdated  # list outdated deps that are mentioned in Brewfile'
 	@echo '  make brew/upgrade   # upgrade all deps that are mentioned in Brewfile'
+	@echo '  make devbox         # install and initialise devbox global config'
+
+devbox:
+	wget https://github.com/jetpack-io/devbox/releases/download/0.5.7/devbox_0.5.7_linux_amd64.tar.gz
+
+devbox-old:
+	@./init/devbox
 
 # moreutils has a terrible version of parallel bundled with it,
 # this snippet ensures all the moreutils binaries are linked

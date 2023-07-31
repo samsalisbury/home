@@ -1,0 +1,23 @@
+{
+  "packages": [
+    "bc@latest",
+    "jq@latest",
+    "gh@latest",
+    "parallel@latest",
+    "ag@latest",
+    "go@1.20.5",
+    "coreutils@latest",
+    "moreutils@latest",
+    "util-linux@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Welcome to devbox!' > /dev/null"
+    ],
+    "scripts": {
+      "test": [
+        "echo \"Error: no test specified\" && exit 1"
+      ]
+    }
+  }
+}

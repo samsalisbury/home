@@ -1,0 +1,59 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "ag@latest": {
+      "last_modified": "2022-02-25T05:00:09Z",
+      "resolved": "github:NixOS/nixpkgs/056c34167d3210a674ef21691afbbce1ed63f8ca#ag",
+      "source": "devbox-search",
+      "version": "2.2.0"
+    },
+    "bc@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#bc",
+      "source": "devbox-search",
+      "version": "1.07.1"
+    },
+    "coreutils@latest": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#coreutils",
+      "source": "devbox-search",
+      "version": "9.3"
+    },
+    "gh@latest": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#gh",
+      "source": "devbox-search",
+      "version": "2.31.0"
+    },
+    "go@1.20.5": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#go",
+      "source": "devbox-search",
+      "version": "1.20.5"
+    },
+    "jq@latest": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#jq",
+      "source": "devbox-search",
+      "version": "1.6"
+    },
+    "moreutils@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#moreutils",
+      "source": "devbox-search",
+      "version": "0.67"
+    },
+    "parallel@latest": {
+      "last_modified": "2023-06-29T16:20:38Z",
+      "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#parallel",
+      "source": "devbox-search",
+      "version": "20230622"
+    },
+    "util-linux@latest": {
+      "last_modified": "2023-05-06T16:57:53Z",
+      "resolved": "github:NixOS/nixpkgs/16b3b0c53b1ee8936739f8c588544e7fcec3fc60#util-linux",
+      "source": "devbox-search",
+      "version": "1003.1-2008"
+    }
+  }
+}

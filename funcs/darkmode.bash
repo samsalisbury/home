@@ -29,10 +29,14 @@ reload-darkmode() {
 	local NAME
 	NAME="$(basename "${BASH_SOURCE[0]}")"
 	FILEPATH="$HOME/funcs/$NAME"
-	source "$FILEPATH" && echo "$FILEPATH reloaded"
+	source "$FILEPATH"
 }
 
 set_macos_palette() {
+	command -v osascript > /dev/null 2>&1 || {
+		echo "Skipping macos palette, osascript not found." 1>&SC2086
+		return 0
+	}
 	local MODE="$1" MAC_MODE
 	[ "$MODE" = "dark" ] && MAC_MODE="true"
 	[ "$MODE" = "light" ] && MAC_MODE="false"
@@ -70,7 +74,7 @@ set_terminal_palette() {
 		set -g pane-border-style 'bg=$BG fg=$BORDER'
 		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
 
-		set -g status-style fg=$STATUS_FG,bold,bg=$STATUS_BG
+		set -g status-style 'fg=$STATUS_FG,bold bg=$STATUS_BG'
 		setw -g window-status-current-style fg=$STATUS_SELECTED
 
 		set  window-style '$WINDOW_STYLE'
@@ -80,11 +84,13 @@ set_terminal_palette() {
 
 	tmux source-file "$PALETTE_STATE_TMUX"
 
-	osascript <<-EOF
-		tell application "Terminal"
-		  set background color of selected tab of window 1 to $TERMINAL_BG
-    	end tell
-	EOF
+	if command -v osascript > /dev/null 2>&1; then
+		osascript <<-EOF
+			tell application "Terminal"
+			  set background color of selected tab of window 1 to $TERMINAL_BG
+    		end tell
+		EOF
+	fi
 
 	# Set the style for each open window first.
 	ORIG_WINDOW="$(tmux display-message -p '#I')"
@@ -120,6 +126,7 @@ macdark() {
 
 # light sets tmux to light mode.
 light() {
+	tmux setenv DARKMODE Light
 	maclight
 	MODE=Light
 	BG="#FFFFFF"
@@ -134,11 +141,12 @@ light() {
 	LUALINE_THEME="ayu_light"
 	TERMINAL_BG="{65000, 65000, 65000}"
 	set_terminal_palette
-	match-brightness || true
+	match-brightness >/dev/null 2>&1 || true
 }
 
 # light sets tmux to dark mode.
 dark() {
+	tmux setenv DARKMODE Dark
 	local BLACK="#121212"
 	macdark
 	MODE=Dark
@@ -147,12 +155,20 @@ dark() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	STATUS_BG=green
-	STATUS_FG=darkgreen
+	STATUS_FG=black
 	STATUS_SELECTED="$BLACK"
 	BACKGROUND=dark
 	COLORSCHEME=github
 	TERMINAL_BG="{0, 0, 0}"
 	LUALINE_THEME="tokyonight"
 	set_terminal_palette
-	match-brightness || true
+	match-brightness >/dev/null 2>&1 || true
 }
+
+tmux-getenv() {
+	tmux show-environment | grep -E "^$1=" | cut -d= -f2
+}
+
+if [[ -z "$(tmux-getenv DARKMODE)" ]]; then
+	dark
+fi
