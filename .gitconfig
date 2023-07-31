@@ -9,6 +9,7 @@
 	default = simple
 [alias]
 	slog = log --show-signature
+	recent = branch --sort=-committerdate --format=\"%(committerdate:relative)%09%(refname:short)\"
 # GPG
 [commit]
 	gpgsign = false
