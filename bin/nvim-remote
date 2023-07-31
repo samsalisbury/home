@@ -19,8 +19,7 @@ nvim-remote.main() {
 : "${USER:=$(id -un)}"
 
 list-sockets() {
-	pathPattern="*/nvim.$USER/*"
-	find /var/folders -type socket -path "$pathPattern" 2>/dev/null
+	find "$TMPDIR/nvim.$USER" -type s 2>/dev/null
 }
 
 tell-all() {
