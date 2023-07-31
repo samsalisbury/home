@@ -17,7 +17,8 @@
     "tmux@latest",
     "nerdfonts@latest",
     "locale@latest",
-    "glibcLocales@latest"
+    "glibcLocales@latest",
+    "xclip@latest"
   ],
   "shell": {
     "init_hook": [

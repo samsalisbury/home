@@ -108,6 +108,12 @@
       "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#virtualenv",
       "source": "devbox-search",
       "version": "20.19.0"
+    },
+    "xclip@latest": {
+      "last_modified": "2023-05-20T19:54:14Z",
+      "resolved": "github:NixOS/nixpkgs/8bf3e834daedadc6d0f4172616b2bdede1109c48#xclip",
+      "source": "devbox-search",
+      "version": "0.13"
     }
   }
 }
