@@ -9,6 +9,7 @@
 	default = simple
 [alias]
 	slog = log --show-signature
+	recent = branch --sort=-committerdate --format=\"%(committerdate:relative)%09%(refname:short)\"
 # GPG
 [commit]
 	gpgsign = false
@@ -49,7 +50,7 @@
 	useHttpPath = true
 [credential "https://github.com"]
 	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper = !gh auth git-credential
 [credential "https://gist.github.com"]
 	helper = 
-	helper = !/usr/bin/gh auth git-credential
+	helper = !gh auth git-credential
