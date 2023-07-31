@@ -3,14 +3,60 @@
 start="$(date +%s.%N)"
 
 OS="$(uname | tr '[:upper:]' '[:lower:]')"
-export linux=false darwin=false
+export linux=false darwin=false;
 [[ "$OS" == "linux" ]] && linux=true
 [[ "$OS" == "darwin" ]] && darwin=true
 
-$linux && {
+has() { command -v "$1" > /dev/null 2>&1; }
+os()  { [[ "$OS" == "$1" ]]; }
+
+os linux && has devbox && {
 	source ./init/setup-nix-devbox.bash
 	export LC_ALL=en_GB.UTF8
 }
+
+# start_or_attach_tmux starts a new tmux session and attaches to items
+# if there are no tmux sessions in progress.
+# If there are tmux sessions in progress and any of them are unattached,
+# then it attaches to the first unattached session.
+# If there are sessions and they are all attached, it doesn't start tmux
+# at all and just provides a plain shell.
+start_or_attach_tmux() {
+	has tmux || {
+		# Tmux is not installed so do nothing.
+		return 1
+	}
+	[[ -z "${TMUX:-}" ]] || {
+		# We are inside TMUX already so do nothing.
+		return 1
+	}
+	local LSFMT SESSIONS UNATTACHED ALL_ATTACHED=false
+	LSFMT="#{session_name}|#{?session_attached,attached,not attached}"
+	SESSIONS="$(tmux ls -F "$LSFMT" 2>/dev/null)" || {
+		# No tmux sessions are running, start one.
+		tmux -2
+		return 0
+	}
+	UNATTACHED="$(grep 'not attached$' <<< "$SESSIONS" | head -n 1 | cut -d '|' -f1)" || {
+		ALL_ATTACHED=true
+	}
+	[[ -n "$UNATTACHED" ]] || {
+		ALL_ATTACHED=true
+	}
+	$ALL_ATTACHED && {
+		# All sessions are attached, just let the user know tmux is running.
+		echo "You have tmux sessions running:"
+		tmux ls
+		return 1
+	}
+	# We have at least one unattached session... Attach to it.
+	tmux -2 attach -t "$UNATTACHED"
+	return 0
+}
+
+# If we're attaching tmux, then we're done.
+# The rest of the file will be skipped.
+start_or_attach_tmux || {
 
 PATH="/opt/homebrew/bin:$PATH"
 
@@ -18,12 +64,9 @@ PATH="$HOME/.local/share/bin:$PATH"
 
 source "$HOME/funcs/darkmode.bash"
 
-installed() { 
-	command -v "$1" > /dev/null 2>&1 && return 0
-}
 
 _req_tool() {
-	installed "$1" && return 0
+	has "$1" && return 0
 	if $linux; then
 		apt install "$1"
 	else
@@ -270,3 +313,5 @@ end="$(date +%s.%N)"
 
 echo -n ".bash_profile runtime: "
 echo "$end - $start" | bc -l
+
+}
