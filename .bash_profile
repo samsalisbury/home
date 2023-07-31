@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
+start="$(date +%s.%N)"
+
 PATH="/opt/homebrew/bin:$PATH"
+
 PATH="$HOME/.local/share/bin:$PATH"
 
 source "$HOME/funcs/darkmode.bash"
@@ -29,16 +32,11 @@ _req_tool() {
 
 if [[ "$(uname)" == "Darwin" ]]; then
 	_req_tool gdate
-else
-	gdate() { date "$@"; }
 fi
 _req_tool bc
 
 # Some scripts and Makefiles this to decide whether to clear the screen.
 export AUTOCLEAR=1
-
-start="$(gdate +%s.%N)"
-
 
 $linux && {
 	source ./init/setup-nix-devbox.bash
@@ -60,11 +58,11 @@ source "$HOME/funcs/getport.bash"
 source "$HOME/funcs/creds.bash"
 
 ## Python
-export PYENV_ROOT="$HOME/.pyenv" 
-export PATH="$PYENV_ROOT/bin:$PATH" 
-eval "$(pyenv init --path)" 
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
+#export PYENV_ROOT="$HOME/.pyenv" 
+#export PATH="$PYENV_ROOT/bin:$PATH" 
+#eval "$(pyenv init --path)" 
+#eval "$(pyenv init -)"
+#eval "$(pyenv virtualenv-init -)"
 
 #sourcetool "$PYENV_ROOT/plugins/pyenv-virtualenv" \
 #	https://github.com/pyenv/pyenv-virtualenv $PYENV_VIRTUALENV_VERSION
@@ -118,9 +116,10 @@ HISTTIMEFORMAT='%F %T '
 shopt -s cmdhist
 #export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
-# Set display brightness options in the background & suppress all output.
-( tmux-dark-mode & ) &> /dev/null
-( { match-brightness > /dev/null 2>&1 || true; } & ) &> /dev/null
+# TODO: See if this is what's slow...
+## Set display brightness options in the background & suppress all output.
+#( tmux-dark-mode & ) &> /dev/null
+#( { match-brightness > /dev/null 2>&1 || true; } & ) &> /dev/null
 
 alias l='ls -lahG'
 alias t='tree'
@@ -228,11 +227,6 @@ fi
 
 source "$GIT_COMPLETION"
 
-#export NVM_DIR="$HOME/.nvm"
-#[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"  # This loads nvm
-#[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-
 # Temporary func used for reovering accidentally deleted nix config.
 rec() {
 	time grep -aFC 200 "$1" /dev/dm-2 > "$2.raw"
@@ -264,10 +258,6 @@ print_docker_status() {
 
 print_docker_status
 
-end="$(gdate +%s.%N)"
-
-echo -n ".bash_profile runtime: "
-echo "$end - $start" | bc -l
 
 unset linux darwin
 
@@ -279,3 +269,8 @@ git_dotfiles_configure_shell_hook() {
 }
 git_dotfiles home "$HOME"
 git_dotfiles system /
+
+end="$(date +%s.%N)"
+
+echo -n ".bash_profile runtime: "
+echo "$end - $start" | bc -l
