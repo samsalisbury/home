@@ -31,6 +31,12 @@
       "source": "devbox-search",
       "version": "1.20.5"
     },
+    "hyperfine@latest": {
+      "last_modified": "2023-07-25T23:32:12Z",
+      "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#hyperfine",
+      "source": "devbox-search",
+      "version": "1.17.0"
+    },
     "jq@latest": {
       "last_modified": "2023-06-29T16:20:38Z",
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#jq",
@@ -43,17 +49,41 @@
       "source": "devbox-search",
       "version": "0.67"
     },
+    "mosh@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#mosh",
+      "source": "devbox-search",
+      "version": "1.4.0"
+    },
+    "neovim@latest": {
+      "last_modified": "2023-07-25T23:32:12Z",
+      "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#neovim",
+      "source": "devbox-search",
+      "version": "0.9.1"
+    },
     "parallel@latest": {
       "last_modified": "2023-06-29T16:20:38Z",
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#parallel",
       "source": "devbox-search",
       "version": "20230622"
     },
+    "pyenv@latest": {
+      "last_modified": "2023-07-25T23:32:12Z",
+      "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#pyenv",
+      "source": "devbox-search",
+      "version": "2.3.23"
+    },
     "util-linux@latest": {
       "last_modified": "2023-05-06T16:57:53Z",
       "resolved": "github:NixOS/nixpkgs/16b3b0c53b1ee8936739f8c588544e7fcec3fc60#util-linux",
       "source": "devbox-search",
       "version": "1003.1-2008"
+    },
+    "virtualenv@latest": {
+      "last_modified": "2023-05-07T06:59:10Z",
+      "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#virtualenv",
+      "source": "devbox-search",
+      "version": "20.19.0"
     }
   }
 }
