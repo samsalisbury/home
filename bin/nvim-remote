@@ -16,10 +16,18 @@ nvim-remote.main() {
 	"$FUNC" "$@"
 }
 
-: "${USER:=$(id -un)}"
+if [[ "$(uname)" == "Darwin" ]]; then
+	USER="$(id -un)"
+	SOCKET_DIR="$TMPDIR/nvim.$USER"
+else
+	USER="$(id -u)"
+	SOCKET_DIR="/run/user/$USER"
+fi
+
+FILE_PATTERN="nvim.*"
 
 list-sockets() {
-	find "$TMPDIR/nvim.$USER" -type s 2>/dev/null
+	find "$SOCKET_DIR" -name "$FILE_PATTERN" -type s 2>/dev/null
 }
 
 tell-all() {
