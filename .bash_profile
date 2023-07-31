@@ -2,6 +2,16 @@
 
 start="$(date +%s.%N)"
 
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+export linux=false darwin=false
+[[ "$OS" == "linux" ]] && linux=true
+[[ "$OS" == "darwin" ]] && darwin=true
+
+$linux && {
+	source ./init/setup-nix-devbox.bash
+	export LC_ALL=en_GB.UTF8
+}
+
 PATH="/opt/homebrew/bin:$PATH"
 
 PATH="$HOME/.local/share/bin:$PATH"
@@ -11,15 +21,6 @@ source "$HOME/funcs/darkmode.bash"
 installed() { 
 	command -v "$1" > /dev/null 2>&1 && return 0
 }
-
-OS="$(uname | tr '[:upper:]' '[:lower:]')"
-linux=false
-darwin=false
-if [[ "$OS" == "linux" ]]; then
-	linux=true
-elif [[ "$OS" == "darwin" ]]; then
-	darwin=true
-fi
 
 _req_tool() {
 	installed "$1" && return 0
@@ -37,10 +38,6 @@ _req_tool bc
 
 # Some scripts and Makefiles this to decide whether to clear the screen.
 export AUTOCLEAR=1
-
-$linux && {
-	source ./init/setup-nix-devbox.bash
-}
 
 # Disable warnings about not being able to follow source includes.
 # shellcheck disable=SC1090,SC1091
@@ -257,7 +254,6 @@ print_docker_status() {
 }
 
 print_docker_status
-
 
 unset linux darwin
 

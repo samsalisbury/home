@@ -25,6 +25,12 @@
       "source": "devbox-search",
       "version": "2.31.0"
     },
+    "glibcLocales@latest": {
+      "last_modified": "2023-05-20T19:54:14Z",
+      "resolved": "github:NixOS/nixpkgs/8bf3e834daedadc6d0f4172616b2bdede1109c48#glibcLocales",
+      "source": "devbox-search",
+      "version": "2.37-8"
+    },
     "go@1.20.5": {
       "last_modified": "2023-06-29T16:20:38Z",
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#go",
@@ -42,6 +48,12 @@
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#jq",
       "source": "devbox-search",
       "version": "1.6"
+    },
+    "locale@latest": {
+      "last_modified": "2021-07-29T04:33:19Z",
+      "resolved": "github:NixOS/nixpkgs/dd98b100651cfbb8804f32d852f75ef7c97a6b74#locale",
+      "source": "devbox-search",
+      "version": "1003.1-2008"
     },
     "moreutils@latest": {
       "last_modified": "2023-05-07T06:59:10Z",
