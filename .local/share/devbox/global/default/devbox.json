@@ -18,7 +18,10 @@
     "nerdfonts@latest",
     "locale@latest",
     "glibcLocales@latest",
-    "xclip@latest"
+    "xclip@latest",
+    "kitty@latest",
+    "nodejs@latest",
+    "tree@latest"
   ],
   "shell": {
     "init_hook": [

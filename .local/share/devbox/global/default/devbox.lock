@@ -49,6 +49,12 @@
       "source": "devbox-search",
       "version": "1.6"
     },
+    "kitty@latest": {
+      "last_modified": "2023-07-30T12:29:02Z",
+      "resolved": "github:NixOS/nixpkgs/3acb5c4264c490e7714d503c7166a3fde0c51324#kitty",
+      "source": "devbox-search",
+      "version": "0.29.2"
+    },
     "locale@latest": {
       "last_modified": "2021-07-29T04:33:19Z",
       "resolved": "github:NixOS/nixpkgs/dd98b100651cfbb8804f32d852f75ef7c97a6b74#locale",
@@ -79,6 +85,12 @@
       "source": "devbox-search",
       "version": "3.0.2"
     },
+    "nodejs@latest": {
+      "last_modified": "2023-07-23T03:35:12Z",
+      "resolved": "github:NixOS/nixpkgs/af8cd5ded7735ca1df1a1174864daab75feeb64a#nodejs_20",
+      "source": "devbox-search",
+      "version": "20.5.0"
+    },
     "parallel@latest": {
       "last_modified": "2023-06-29T16:20:38Z",
       "resolved": "github:NixOS/nixpkgs/3c614fbc76fc152f3e1bc4b2263da6d90adf80fb#parallel",
@@ -96,6 +108,12 @@
       "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#tmux",
       "source": "devbox-search",
       "version": "3.3a"
+    },
+    "tree@latest": {
+      "last_modified": "2023-07-23T03:35:12Z",
+      "resolved": "github:NixOS/nixpkgs/af8cd5ded7735ca1df1a1174864daab75feeb64a#tree",
+      "source": "devbox-search",
+      "version": "2.1.1"
     },
     "util-linux@latest": {
       "last_modified": "2023-05-06T16:57:53Z",
