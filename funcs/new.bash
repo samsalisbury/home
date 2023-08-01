@@ -1,6 +1,4 @@
 
-log() { echo "==> $*" 1>&2; }
-
 _template() { cat "$HOME/funcs/new.templates/$1"; }
 
 new() {
