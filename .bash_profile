@@ -1,73 +1,55 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC1090 # Ignore "Can't follow non-constant source."
+
 start="$(date +%s.%N)"
 
-OS="$(uname | tr '[:upper:]' '[:lower:]')"
-export linux=false darwin=false;
-[[ "$OS" == "linux" ]] && linux=true
-[[ "$OS" == "darwin" ]] && darwin=true
+PATH="/opt/homebrew/bin:$PATH"
+PATH="$HOME/.local/share/bin:$PATH"
 
+: "${DEBUG:=true}"
+OS="$(uname | tr '[:upper:]' '[:lower:]')"
+log() { printf "%s\n" "$*" >&2; }
+dbg() { $DEBUG || return 0; log "DEBUG: $*"; }
 has() { command -v "$1" > /dev/null 2>&1; }
 os()  { [[ "$OS" == "$1" ]]; }
+
+# STOP is a special exit code meaning stop sourcing further files.
+STOP=13
+
+include() { local code fn_name
+	dbg "Sourcing $f"
+	source "$f" || {
+		code=$?; (( code == STOP )) && MSG=dbg || MSG=log
+		log "Error sourcing $f"
+		return $?
+	}
+	fn_name="$(echo "${1##.bashrc.d/}" | sed -E 's/[[:digit:]]{2}\-(.*)\.bash/\1/')"
+	dbg "Running $fn_name"
+	$fn_name && {
+		dbg "$fn_name succeeded"
+		return 0
+	}
+	code=$?; (( code == STOP )) && MSG=dbg || MSG=log
+	$MSG "$f failed with exit code $code, skipping remaining files."
+	return $code
+}
+
+for f in .bashrc.d/*.bash; do
+	include "$f" || break
+done
 
 os linux && has devbox && {
 	source ./init/setup-nix-devbox.bash
 	export LC_ALL=en_GB.UTF8
 }
 
-# start_or_attach_tmux starts a new tmux session and attaches to items
-# if there are no tmux sessions in progress.
-# If there are tmux sessions in progress and any of them are unattached,
-# then it attaches to the first unattached session.
-# If there are sessions and they are all attached, it doesn't start tmux
-# at all and just provides a plain shell.
-start_or_attach_tmux() {
-	has tmux || {
-		# Tmux is not installed so do nothing.
-		return 1
-	}
-	[[ -z "${TMUX:-}" ]] || {
-		# We are inside TMUX already so do nothing.
-		return 1
-	}
-	local LSFMT SESSIONS UNATTACHED ALL_ATTACHED=false
-	LSFMT="#{session_name}|#{?session_attached,attached,not attached}"
-	SESSIONS="$(tmux ls -F "$LSFMT" 2>/dev/null)" || {
-		# No tmux sessions are running, start one.
-		tmux -2
-		return 0
-	}
-	UNATTACHED="$(grep 'not attached$' <<< "$SESSIONS" | head -n 1 | cut -d '|' -f1)" || {
-		ALL_ATTACHED=true
-	}
-	[[ -n "$UNATTACHED" ]] || {
-		ALL_ATTACHED=true
-	}
-	$ALL_ATTACHED && {
-		# All sessions are attached, just let the user know tmux is running.
-		echo "You have tmux sessions running:"
-		tmux ls
-		return 1
-	}
-	# We have at least one unattached session... Attach to it.
-	tmux -2 attach -t "$UNATTACHED"
-	return 0
-}
-
-# If we're attaching tmux, then we're done.
-# The rest of the file will be skipped.
-start_or_attach_tmux || {
-
-PATH="/opt/homebrew/bin:$PATH"
-
-PATH="$HOME/.local/share/bin:$PATH"
-
 source "$HOME/funcs/darkmode.bash"
 
 
 _req_tool() {
 	has "$1" && return 0
-	if $linux; then
+	if os linux; then
 		apt install "$1"
 	else
 		echo "Please install $1" >&2
@@ -298,8 +280,6 @@ print_docker_status() {
 
 print_docker_status
 
-unset linux darwin
-
 # Git Dotfiles
 source "$HOME/funcs/git-dotfiles.bash"
 git_dotfiles_configure_shell_hook() {
@@ -313,5 +293,3 @@ end="$(date +%s.%N)"
 
 echo -n ".bash_profile runtime: "
 echo "$end - $start" | bc -l
-
-}
