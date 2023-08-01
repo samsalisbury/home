@@ -11,7 +11,7 @@ now() { perl -MTime::HiRes -e 'printf("%.0f\n",Time::HiRes::time()*1000)'; }
 START="$(now)"
 
 # Load config
-CONF=.config/bash_profile.env
+CONF=~/.config/bash_profile.env
 [[ -f "$CONF" ]] || printf "BENCH=true\nDEBUG=true\nTRACE=true\n" > $CONF
 source "$CONF"
 
@@ -37,12 +37,14 @@ run() { trace "run: \$ $*"
 	CTX="$CTX: run: $1" bench "$@" && { dbg "run: $1: succeeded$B"; return 0; }
 	code=$?; dbg "run: $1: failed$B"; return $code;
 }
-include() { local code fn_name file="$1"
+include() { local code fn_name file="$1" filename dir
 	# STOP is a special exit code meaning stop sourcing further files.
 	STOP=13
+	filename="$(basename "$file")"
+	dir="$(dirname "$file")"
 	trace "src: $file"
 	source "$file" || return $?
-	fn_name="$(echo "${1##.bashrc.d/}" | sed -E 's/[[:digit:]]{2}\-(.*)\.bash/\1/')"
+	fn_name="$(sed -E 's/[[:digit:]]{2}\-(.*)\.bash/\1/' <<< "$filename")"
 	run $fn_name && return 0
 	(( code == STOP )) && MSG=dbg || MSG=log
 	$MSG "$file failed with exit code $code, skipping remaining files."
@@ -60,8 +62,8 @@ pathadd() {
 # Main
 #
 
-for f in .bashrc.d/*.bash; do
-	include "$f" || break
+for f in ~/.bashrc.d/*.bash; do
+	include "$f" || { msg "Errors encountered, see above."; break; }
 done
 
 #
