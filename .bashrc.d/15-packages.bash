@@ -1,12 +1,8 @@
 packages() {
-	has nix && has devbox && {
-		export LC_ALL=en_GB.UTF8
-		if [ -e "$HOME/.nix-profile/etc/profile.d/nix.sh" ]; then
-			source "$HOME/.nix-profile/etc/profile.d/nix.sh"
-		fi
+	has devbox && {
 		eval "$(devbox global shellenv)"
+		#os linux && export LC_ALL=en_GB.UTF8
 	}
-	has nix    || msg "Nix not installed; use 'install_nix'"
 	has devbox || msg "Devbox not installed; use 'install_devbox'"
 }
 
