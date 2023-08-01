@@ -49,18 +49,6 @@
       "source": "devbox-search",
       "version": "1.6"
     },
-    "kitty@latest": {
-      "last_modified": "2023-07-30T12:29:02Z",
-      "resolved": "github:NixOS/nixpkgs/3acb5c4264c490e7714d503c7166a3fde0c51324#kitty",
-      "source": "devbox-search",
-      "version": "0.29.2"
-    },
-    "locale@latest": {
-      "last_modified": "2021-07-29T04:33:19Z",
-      "resolved": "github:NixOS/nixpkgs/dd98b100651cfbb8804f32d852f75ef7c97a6b74#locale",
-      "source": "devbox-search",
-      "version": "1003.1-2008"
-    },
     "moreutils@latest": {
       "last_modified": "2023-05-07T06:59:10Z",
       "resolved": "github:NixOS/nixpkgs/eb751d65225ec53de9cf3d88acbf08d275882389#moreutils",
@@ -78,12 +66,6 @@
       "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#neovim",
       "source": "devbox-search",
       "version": "0.9.1"
-    },
-    "nerdfonts@latest": {
-      "last_modified": "2023-07-25T23:32:12Z",
-      "resolved": "github:NixOS/nixpkgs/a9b47d85504bdd199e90846622c76aa0bfeabfac#nerdfonts",
-      "source": "devbox-search",
-      "version": "3.0.2"
     },
     "nodejs@latest": {
       "last_modified": "2023-07-23T03:35:12Z",

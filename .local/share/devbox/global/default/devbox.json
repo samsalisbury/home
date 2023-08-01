@@ -15,11 +15,8 @@
     "virtualenv@latest",
     "hyperfine@latest",
     "tmux@latest",
-    "nerdfonts@latest",
-    "locale@latest",
     "glibcLocales@latest",
     "xclip@latest",
-    "kitty@latest",
     "nodejs@latest",
     "tree@latest"
   ],
