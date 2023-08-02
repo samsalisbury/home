@@ -17,4 +17,5 @@ install_nix() (
 
 install_devbox() {
 	./init/devbox.official
+	devbox global install
 }
