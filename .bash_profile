@@ -12,7 +12,7 @@ START="$(now)"
 
 # Load config
 CONF=~/.config/bash_profile.env
-[[ -f "$CONF" ]] || printf "BENCH=true\nDEBUG=true\nTRACE=true\n" > $CONF
+[[ -f "$CONF" ]] || printf "BENCH=true\nDEBUG=false\nTRACE=false\n" > $CONF
 source "$CONF"
 
 # Utilities

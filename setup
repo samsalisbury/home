@@ -1,18 +1,32 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script is used to bootstrap a new machine.
 # To run it directly:
 #
-# curl -fsSL https://raw.githubusercontent.com/samsalisbury/home/master/setup | sh
+# curl -fsSL https://raw.githubusercontent.com/samsalisbury/home/main/setup | bash
 
 set -eu
+
+command -v apt >/dev/null 2>&1 && {
+	DEBIAN_FRONTEND=noninteractive
+	sudo apt install -y git gh
+}
+
 init() {
 	export GIT_DIR=home.git GIT_WORK_TREE="$HOME"
 	git init "$HOME"
 	git remote add origin https://github.com/samsalisbury/home
 	git fetch --all
-	git reset --hard origin/master
-	echo "==> All done - open a new shell to begin; Launch nvim to install plugins..."
+	git checkout -b main
+	git reset --hard origin/main
+	git branch -u origin/main main
+	source .bash_profile
+	echo "==> All done, next steps:"
+	echo "     1. Run 'install_devbox'"
+	echo "     2. Run 'devbox global install'"
+	echo "     3. Run 'nvim' to setup plugins."
+	echo "     4. Run 'gh auth login'"
+	echo "     5. Run 'tmux -2 and get busy!'"
 }
 
 init
