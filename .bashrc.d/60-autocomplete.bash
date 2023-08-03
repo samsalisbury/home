@@ -5,6 +5,7 @@ autocomplete() {
 
 	source "$HOME/funcs/aliascompletion.bash"
 
+
 	# AWS autocomplete
 	complete -C '/usr/local/bin/aws_completer' aws
 	

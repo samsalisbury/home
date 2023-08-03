@@ -1,9 +1,27 @@
+# shellcheck disable=SC1090
+DEVBOXENV=~/.local/state/devbox/shellenv
 packages() {
 	has devbox && {
-		eval "$(devbox global shellenv)"
-		#os linux && export LC_ALL=en_GB.UTF8
+		[[ -f "$DEVBOXENV" ]] && source "$DEVBOXENV"
+		[[ -f "$DEVBOXENV" ]] || write_devbox_shellenv
 	}
 	has devbox || msg "Devbox not installed; use 'install_devbox'"
+}
+
+write_devbox_shellenv() {
+	echo "==> Updating devbox shell env"
+	mkdir -p "$(dirname "$DEVBOXENV")"
+	devbox global shellenv > "$DEVBOXENV"
+}
+
+add() {
+	devbox global add "$1"
+	write_devbox_shellenv
+}
+
+remove() {
+	devbox global rm "$1"
+	write_devbox_shellenv
 }
 
 install_nix() (
