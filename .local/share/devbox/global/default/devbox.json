@@ -18,7 +18,8 @@
     "glibcLocales@latest",
     "xclip@latest",
     "nodejs@latest",
-    "tree@latest"
+    "tree@latest",
+    "firecracker@latest"
   ],
   "shell": {
     "init_hook": [
