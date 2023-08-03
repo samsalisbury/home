@@ -8,12 +8,25 @@
 
 # Begin overall benchmarking...
 now() { perl -MTime::HiRes -e 'printf("%.0f\n",Time::HiRes::time()*1000)'; }
-START="$(now)"
-
+$SILENT || {
+	START="$(now)"
+}
 # Load config
 CONF=~/.config/bash_profile.env
-[[ -f "$CONF" ]] || printf "BENCH=true\nDEBUG=false\nTRACE=false\n" > $CONF
-source "$CONF"
+writeconf() {
+	mkdir -p "$(dirname "$CONF")"
+	{
+		echo "SILENT=${SILENT:-false}"
+		echo "BENCH=${BENCH:-false}"
+		echo "DEBUG=${DEBUG:-false}"
+		echo "TRACE=${TRACE:-false}"
+	} > "$CONF"
+}
+readconf() {
+	[[ -f "$CONF" ]] || writeconf
+	source "$CONF"
+}
+readconf
 
 # Utilities
 lower() { tr '[:upper:]' '[:lower:]'; }
@@ -28,27 +41,38 @@ bench() { local start; B=""
 	if $BENCH && $DEBUG; then B=" ($(since "$start"))"; fi
 	return "$code"
 }
+reload() { source ~/.bash_profile; }
 CTX="$(basename "${BASH_SOURCE[0]}")"
 dbg() { $DEBUG || return 0; log "DEBUG: $CTX: $*"; }
+bnc() { $BENCH || return 0; log "BENCH: $CTX: $*"; }
 trace() { $TRACE || return 0; log "TRACE: $CTX: $*"; }
 log() { printf "%s\n" "$*" >&2; }
-msg() { MSGS+=("$*"); }; MSGS=()
+msg() { $SILENT && return 0; MSGS+=("$*"); }; MSGS=()
 run() { trace "run: \$ $*"
 	CTX="$CTX: run: $1" bench "$@" && { dbg "run: $1: succeeded$B"; return 0; }
 	code=$?; dbg "run: $1: failed$B"; return $code;
 }
-include() { local code fn_name file="$1" filename dir
+
+benchmark() { clear; local B="$BENCH"; bench_on; reload 2>&1 | ts -i "%.S"; BENCH="$B"; writeconf; }
+bench_on() { BENCH=true; writeconf; }
+bench_off() { BENCH=false; writeconf; }
+debug_on() { DEBUG=true; writeconf; }
+debug_off() { DEBUG=false; TRACE=false; writeconf; }
+
+include() { local code start fn_name file="$1" filename
 	# STOP is a special exit code meaning stop sourcing further files.
 	STOP=13
 	filename="$(basename "$file")"
-	dir="$(dirname "$file")"
-	trace "src: $file"
+	trace "include: $file"
+	$BENCH && start="$(now)"
 	source "$file" || return $?
+	trace "include: $file: sourced"
 	fn_name="$(sed -E 's/[[:digit:]]{2}\-(.*)\.bash/\1/' <<< "$filename")"
+	$BENCH && bnc "$filename $(since "$start")"
 	run $fn_name && return 0
 	(( code == STOP )) && MSG=dbg || MSG=log
 	$MSG "$file failed with exit code $code, skipping remaining files."
-	return $code
+	return "$code"
 }
 pathadd() {
 	for P in "$@"; do
@@ -69,6 +93,8 @@ done
 #
 # Footer
 #
-$BENCH && msg "Loaded .bash_profile in $(since "$START")s"
+$SILENT || {
+	msg "Loaded .bash_profile in $(since "$START")s"
+	for M in "${MSGS[@]}"; do log "$M"; done
+}
 
-for M in "${MSGS[@]}"; do log "$M"; done
