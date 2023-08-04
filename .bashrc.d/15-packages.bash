@@ -6,6 +6,20 @@ packages() {
 		[[ -f "$DEVBOXENV" ]] || write_devbox_shellenv
 	}
 	has devbox || msg "Devbox not installed; use 'install_devbox'"
+
+	has tailscale || msg "tailscale not installed; use 'install_tailscale'"
+}
+
+install_tailscale() {
+	BASE=https://pkgs.tailscale.com/stable/ubuntu/jammy
+	curl -fsSL $BASE.noarmor.gpg | \
+		sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+	curl -fsSL $BASE.tailscale-keyring.list | \
+		sudo tee /etc/apt/sources.list.d/tailscale.list
+
+	sudo apt-get update
+	sudo apt-get install tailscale
+	sudo tailscale up
 }
 
 write_devbox_shellenv() {
