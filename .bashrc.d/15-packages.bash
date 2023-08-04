@@ -30,10 +30,11 @@ install_nix() (
 	mkdir -p $LOGDIR
 	LOGFILE=$LOGDIR/nix-install.log
 	log "Setting up nix... (Logs in $LOGFILE)"
-	NIX_INSTALLER_YES=1 ./init/nix.modified --daemon > $LOGFILE 2>&1
+	NIX_INSTALLER_YES=1 sudo ~/init/nix.modified --daemon > $LOGFILE 2>&1
 )
 
 install_devbox() {
-	./init/devbox.official
+	install_nix
+	~/init/devbox.official
 	devbox global install
 }
