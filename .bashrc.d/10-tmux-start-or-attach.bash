@@ -10,6 +10,7 @@ tmux-start-or-attach() {
 		return 0
 	}
 	[[ -z "${TMUX:-}" ]] || {
+		set_window_title "$(current_session_name)"
 		dbg "We are inside TMUX already so do nothing."
 		return 0
 	}
@@ -33,6 +34,18 @@ tmux-start-or-attach() {
 		return 0
 	}
 	dbg "We have at least one unattached session... Attach to it."
+	set_window_title "$UNATTACHED"
 	tmux -2 attach -t "$UNATTACHED"
 	return "${STOP:?}"
+}
+
+current_session_name() { tmux display-message -p '#S'; }
+
+set_window_title() { local TITLE="$1"
+	has osascript || return 0
+	cat <<-EOF | osascript
+		tell application "Terminal"
+			set custom title of front window to "$TITLE"
+		end
+	EOF
 }

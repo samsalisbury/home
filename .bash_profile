@@ -73,6 +73,7 @@ include() { local code start fn_name file="$1" filename
 	$MSG "$file failed with exit code $code, skipping remaining files."
 	return "$code"
 }
+
 pathadd() {
 	for P in "$@"; do
 		test -d "$P" || { dbg "pathadd: skipping nonexistent path $P to PATH"; continue; }
