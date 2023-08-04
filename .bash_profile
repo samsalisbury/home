@@ -8,9 +8,8 @@
 
 # Begin overall benchmarking...
 now() { perl -MTime::HiRes -e 'printf("%.0f\n",Time::HiRes::time()*1000)'; }
-$SILENT || {
-	START="$(now)"
-}
+START="$(now)"
+
 # Load config
 CONF=~/.config/bash_profile.env
 writeconf() {
