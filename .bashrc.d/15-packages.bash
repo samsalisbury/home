@@ -1,13 +1,21 @@
 # shellcheck disable=SC1090
 DEVBOXENV=~/.local/state/devbox/shellenv
 packages() {
-	has devbox && {
-		[[ -f "$DEVBOXENV" ]] && source "$DEVBOXENV"
-		[[ -f "$DEVBOXENV" ]] || write_devbox_shellenv
-	}
-	has devbox || msg "Devbox not installed; use 'install_devbox'"
+
+	#has devbox && {
+	#	[[ -f "$DEVBOXENV" ]] && source "$DEVBOXENV"
+	#	[[ -f "$DEVBOXENV" ]] || write_devbox_shellenv
+	#}
+	#has devbox || msg "Devbox not installed; use 'install_devbox'"
 
 	has tailscale || msg "tailscale not installed; use 'install_tailscale'"
+}
+
+install_devenv() {
+	sudo nix-env -iA cachix -f https://cachix.org/api/v1/install
+	sudo cachix use devenv
+	sudo nix-env -if https://install.devenv.sh/latest
+
 }
 
 install_tailscale() {
@@ -17,8 +25,9 @@ install_tailscale() {
 	curl -fsSL $BASE.tailscale-keyring.list | \
 		sudo tee /etc/apt/sources.list.d/tailscale.list
 
+	export DEBIAN_FRONTEND=noninteractive 
 	sudo apt-get update
-	sudo apt-get install tailscale
+	sudo apt-get install -y tailscale
 	sudo tailscale up
 }
 
@@ -39,13 +48,13 @@ remove() {
 }
 
 install_nix() (
-	export NIX_IGNORE_SYMLINK_STORE=1
 	LOGDIR=~/.local/share/logs
 	mkdir -p $LOGDIR
 	LOGFILE=$LOGDIR/nix-install.log
 	log "Setting up nix... (Logs in $LOGFILE)"
-	NIX_INSTALLER_YES=1 sudo ~/init/nix.modified --daemon > $LOGFILE 2>&1
+	sudo env NIX_INSTALLER_YES=1 ~/init/nix.modified --daemon | tee $LOGFILE 2>&1
 )
+
 
 install_devbox() {
 	install_nix
