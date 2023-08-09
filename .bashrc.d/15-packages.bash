@@ -15,7 +15,10 @@ APT_PACKAGES=(
 	coreutils moreutils build-essential net-tools
 	mosh 
 	git
-	golang-1.20-go
+	golang-go
+	nodejs
+	npm
+	unzip
 )
 
 SNAP_PACKAGES=(
@@ -37,6 +40,11 @@ install_apt() {
 install_snap() {
 	sudo snap install "${SNAP_PACKAGES[@]}"
 	sudo snap install --classic "${CLASSIC_SNAP_PACKAGES[@]}"
+}
+
+install_all() {
+	install_apt
+	install_snap
 }
 
 install_devenv() {
