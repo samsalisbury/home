@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
+die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+
+VERSION="${1:-}"
+[[ -z "$VERSION" ]] && die "No version specified."
+
+: "${DESTDIR:=/usr/local/go}"
+
+command -v go >/dev/null 2>&1 || die "go not found in PATH"
+
+CURR_VERSION="$(go version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')"
+
+[[ "$CURR_VERSION" == "$VERSION" ]] && die "Already using version $VERSION"
+
+BIN_NAME="go${VERSION}"
+
+log "Installing $BIN_NAME to $DESTDIR"
+
+[[ -d "$HOME/sdk/$BIN_NAME" ]] || {
+	go install "golang.org/dl/${BIN_NAME}@latest"
+	$BIN_NAME download
+}
+
+[[ -d "${DESTDIR}" ]] && (
+	OUTERDIR="$(dirname "${DESTDIR}")"
+	DIRNAME="$(basename "${DESTDIR}")"
+	cd "${OUTERDIR}" || die "Failed to cd to ${OUTERDIR}"
+	mv "$DIRNAME" "$HOME/sdk/go${CURR_VERSION}"
+	mv "$HOME/sdk/$BIN_NAME" "$DESTDIR"
+)
