@@ -77,7 +77,7 @@ include() { local code start fn_name file="$1" filename
 pathadd() {
 	for P in "$@"; do
 		test -d "$P" || { dbg "pathadd: skipping nonexistent path $P to PATH"; continue; }
-		[[ ":$PATH:" == *":$P:"* ]] && { dbg "pathadd: skipping duplicate path $P to PATH"; continue; }
+		#[[ ":$PATH:" == *":$P:"* ]] && { dbg "pathadd: skipping duplicate path $P to PATH"; continue; }
 		PATH="$P:$PATH" && dbg "pathadd: adding $P to PATH"
 	done
 }
