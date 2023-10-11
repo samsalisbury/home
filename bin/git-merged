@@ -135,7 +135,7 @@ run cp -R "$REPO_ROOT/." "$WORKDIR"
 
 run cd "$WORKDIR" || die "Couldn't cd to $WORKDIR"
 
-BRANCHES="$(find "$DOT_GIT_DIR/refs/heads" -mindepth 1 -type f | sed -E "s|^$DOT_GIT_DIR/refs/heads/(.*)\$|\1|")"
+BRANCHES="$(git branch --format='%(refname:lstrip=2)')"
 
 is_rebased() { local BRANCH="$1" BASE="$2" LOG
 	LOG="$(git log --cherry --pretty=oneline "$BASE...$BRANCH")" || die "Unable to run git log --cherry --pretty=oneline ..."
@@ -195,7 +195,7 @@ if [[ $COUNT == 0 ]]; then
 	exit 1
 fi
 
-echo "==> Do you want to delete these branches? (Y/n):"
+echo "==> Do you want to delete these branches? (f(orce)/Y(es)/n(o)):"
 for B in "${TO_DELETE[@]}"; do
 	echo "$B"
 done
@@ -203,7 +203,10 @@ done
 FAILED=false
 
 read -r ANSWER
-{ [[ -z "$ANSWER" ]] || [[ "$ANSWER" == "y" ]]; } && {
+ANSWER="$(tr '[:upper:]' '[:lower:]' <<< "$ANSWER")"
+{ [[ -z "$ANSWER" ]] || [[ "$ANSWER" = y* ]] || [[ "$ANSWER" = f* ]]; } && {
+	FLAGS=(--quiet --delete)
+	[[ "$ANSWER" = f* ]] && FLAGS+=(--force)
 	log "==> Deleting..."
 	cd "$REPO_ROOT" || exit 1
 	for B in "${TO_DELETE[@]}"; do
@@ -211,7 +214,7 @@ read -r ANSWER
 			log "Skipping delete of current branch."
 			continue
 		fi
-		git branch --quiet --delete "$B" || { FAILED=true; }
+		git branch "${FLAGS[@]}" "$B" || { FAILED=true; }
 	done
 }
 if $FAILED; then
