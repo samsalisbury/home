@@ -5,3 +5,25 @@
 
 go.work
 go.work.sum
+
+# Possible secrets...
+**/creds/*
+**/auth.json
+**/gh/hosts.yml
+*.pem
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.ca-bundle
+*.p7b
+*.p7c
+*.p7s
+*.pem
+
+# Keystores
+*.key
+*.keystore
+*.jks
