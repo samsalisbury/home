@@ -23,6 +23,7 @@ brew "coreutils"
 brew "datamash"
 brew "ddcctl"
 brew "entr"
+brew "fd" # find alternative
 brew "ffmpeg"
 brew "findutils"
 brew "gawk"
