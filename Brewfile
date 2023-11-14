@@ -44,6 +44,10 @@ brew "gron"
 brew "gum"
 brew "httpie"
 brew "ical-buddy"
+# need to make java available to system via:
+#    $ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk \
+#        /Library/Java/JavaVirtualMachines/openjdk.jdk
+brew "java" 
 brew "jid" # json incremental digger
 brew "jfrog-cli"
 brew "jless"
