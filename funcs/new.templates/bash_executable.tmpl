@@ -5,20 +5,56 @@ set -Eeuo pipefail
 # shellcheck disable=SC2059
 log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
 die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
-err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+err() { local F="ERROR: $1"; shift; log	"$F" "$@"; echo 1; }
 # Set exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
-(return 0 2>/dev/null) || trap '{{ FILENAME }}.main "$@"' EXIT
-{{ FILENAME }}.main() {
+(return 0 2>/dev/null) || trap 'main "$@"' EXIT
+main() {
 	local CODE=$?; trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-	[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
+	[[ ${#@} != 0 ]] || { log "Error: No arguments passed."; {{ FILENAME }}.help; exit 2; }
+	local FUNC="{{ FILENAME }}.$1"; shift
 	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
 	"$FUNC" "$@"
 }
 
-# Your functions go here...
+{{ FILENAME }}.help() {
+	cat <<-EOF
+		{{ FILENAME }} - A bash script template.
+		
+		Usage:
+		  {{ FILENAME }} <command> [options]
+		
+		Commands:
+	EOF
 
-example_func() {
+	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^{{ FILENAME }}\.')"
+	COMMANDS="$(grep -E '^{{ FILENAME }}\.[^\.]+$' <<< "$FUNCS" | sed -E 's/{{ FILENAME }}\.//')"
+	for C in $COMMANDS; do
+		if DESC_FUNC="$(grep -E '^{{ FILENAME }}\.'"$C"'\.desc$' <<< "$FUNCS")"; then
+			DESC="$("$DESC_FUNC")"
+		else
+			DESC="No description provided."
+		fi
+		echo "  $C"$'\t'"$DESC"
+	done | column -t -s $'\t'
+}
+
+{{ FILENAME }}.help.desc() {
+	echo "Show this help message."
+}
+
+{{ FILENAME }}.example.desc() {
+	echo "An example command."
+}
+
+# Functions beginning {{ FILENAME }}.<name> are subcommands that can be called
+# By passing the name as the first argument to this script.
+{{ FILENAME }}.example() {	
+	hello-world "$@"
+}
+
+# Other functions are only exposed internally.
+hello-world() { 
 	echo "hello" "$@"
 }
