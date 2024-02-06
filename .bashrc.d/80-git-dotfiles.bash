@@ -10,15 +10,16 @@ git-dotfiles() {
 		# Override 'ga' func to add only modified files by default.
 		ga() { if [[ -z "$*" ]]; then git ls-files -m | xargs git add; else git add "$@"; fi; }
 		# Add func to checkpoint lazy.nvim plugins.
-		lazy() {
-			localk COMMENT="$*"
+		lazy() (
+			local COMMENT="$*"
 			[[ -z "$COMMENT" ]] && COMMENT="no comment"
 			local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
+			log "Commit message: $MESSAGE"
 			git reset
 			git add ~/.config/nvim/lazy-lock.json
 			git commit -m "$MESSAGE"
 			git push
-		}
+		)
 	}
 
 	git_dotfiles home "$HOME"
