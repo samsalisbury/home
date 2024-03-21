@@ -33,7 +33,7 @@ brew/outdated:
 brew/upgrade:
 	@brew unlink moreutils
 	@brew unlink parallel
-	@brew-tools upgrade_outdated_brewfile_deps
+	@brew-tools upgrade_outdated_brewfile_deps moreutils parallel
 	@$(FIX_PARALLEL_MOREUTILS)
 
 brew/install:

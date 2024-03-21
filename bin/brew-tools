@@ -2,26 +2,46 @@
 
 set -Eeuo pipefail
 # shellcheck disable=SC2059
-log() { local F="$1"; shift; printf "$F\n" "$@"; }
-die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
-err() { local F="ERROR: $1"; shift; log	"$F" "$@"; return 1; }
+log() {
+	local F="$1"
+	shift
+	printf "$F\n" "$@"
+}
+die() {
+	local F="FATAL: $1"
+	shift
+	log "$F" "$@"
+	exit 1
+}
+err() {
+	local F="ERROR: $1"
+	shift
+	log "$F" "$@"
+	return 1
+}
 # Set exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
 (return 0 2>/dev/null) || trap 'brew-tools.main "$@"' EXIT
 brew-tools.main() {
-	local CODE=$?; trap - EXIT
+	local CODE=$?
+	trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-	[[ ${#@} != 0 ]] || { log "No arguments passed."; exit; }; local FUNC="$1"; shift
+	[[ ${#@} != 0 ]] || {
+		log "No arguments passed."
+		exit
+	}
+	local FUNC="$1"
+	shift
 	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
 	"$FUNC" "$@"
 }
 
 # Just the names of every dep in Brewfile.
 brewfile_names() {
-	grep -vE '^(.{0}|#.*)$' Brewfile | cut -d' ' -f2 | sed -E 's/[",]//g' | sort |uniq
+	grep -vE '^(.{0}|#.*)$' Brewfile | cut -d' ' -f2 | sed -E 's/[",]//g' | sort | uniq
 }
 
-# Just the names od all outdated deps.
+# Just the names of all outdated deps.
 outdated_names() {
 	brew outdated | cut -f1 | sort | uniq
 }
@@ -29,6 +49,7 @@ outdated_names() {
 # Just the names of outdated deps that are directly mentioned in Brewfile.
 outdated_brewfile_names() {
 	comm -12 <(brewfile_names) <(outdated_names)
+
 }
 
 outdated_brewfile() {
@@ -36,9 +57,18 @@ outdated_brewfile() {
 	brew outdated $(outdated_brewfile_names) || true
 }
 
+# upgrade_outdated_brewfile_deps upgrades only those direct deps mentioned in the
+# brewfile. Optionally pass the names of deps to skip.
 upgrade_outdated_brewfile_deps() {
+	SKIP_PATTERN="${1:-}"
+	if [[ -n "$SKIP_PATTERN" ]]; then
+		P="${printf '|^%s$' "$@"}"
+		NAMES="$(outdated_brewfile_names | grep -Ev "${P:1}")"
+	else
+		NAMES="$(outdated_brewfile_names)"
+	fi
 	# shellcheck disable=SC2046
-	brew upgrade $(outdated_brewfile_names)
+	brew upgrade $NAMES
 }
 
 install() {
