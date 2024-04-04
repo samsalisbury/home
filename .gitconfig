@@ -46,6 +46,7 @@
 [credential "https://github.com"]
 	helper = 
 	helper = !gh auth git-credential
+	username = samsalisbury
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !gh auth git-credential
