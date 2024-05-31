@@ -125,7 +125,6 @@ cask "zettlr"
 
 mas "1Password 7",                 id: 1333542190
 mas "Adblock Plus for Safari ABP", id: 1432731683
-mas "Affinity Designer",           id: 824171161
 mas "Developer",                   id: 640199958
 mas "Garageband",                  id: 682658836
 mas "iMovie",                      id: 408981434
