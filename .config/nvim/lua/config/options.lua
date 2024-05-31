@@ -14,6 +14,8 @@ vim.opt.smartcase = true
 -- Disable concealing URLs in markdown files by setting conceallevel to 0
 vim.opt.conceallevel = 0
 
+--vim.lsp.inlay_hint.enable(false)
+
 vim.g.markdown_folding = 1
 vim.opt.foldlevel = 999
 
@@ -21,4 +23,4 @@ vim.opt.foldlevel = 999
 --vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
 --vim.opt.foldenable = false
 
-vim.lsp.set_log_level("debug")
+vim.lsp.set_log_level("warn")
