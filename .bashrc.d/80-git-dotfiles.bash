@@ -16,7 +16,14 @@ git-dotfiles() {
 			local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
 			log "Commit message: $MESSAGE"
 			git reset
-			git add ~/.config/nvim/lazy-lock.json
+
+			FILES=(
+				~/.config/nvim/lazy-lock.json
+				~/.config/nvim/lazyvim.json
+			)
+
+			git add "${FILES[@]}"
+
 			git commit -m "$MESSAGE"
 			git push
 		)
