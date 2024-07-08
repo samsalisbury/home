@@ -36,6 +36,9 @@ brew/upgrade:
 	@brew-tools upgrade_outdated_brewfile_deps moreutils parallel
 	@$(FIX_PARALLEL_MOREUTILS)
 
+brew/upgrade-neovim-head:
+	@brew reinstall neovim
+
 brew/install:
 	@brew unlink moreutils
 	@brew unlink parallel
