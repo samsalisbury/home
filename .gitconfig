@@ -43,15 +43,9 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-[credential "https://github.com"]
-	helper = 
-	helper = !gh auth git-credential
-	username = samsalisbury
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !gh auth git-credential
 [credential]
 	helper = 
 	helper = /usr/local/share/gcm-core/git-credential-manager
+	gitLabAuthModes = browser
 [credential "https://dev.azure.com"]
 	useHttpPath = true
