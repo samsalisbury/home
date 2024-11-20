@@ -47,6 +47,7 @@ brew "make"
 brew "markdown"
 brew "moreutils"
 brew "mas"
+# neovim head install requires utf8proc head install
 brew "neovim", head: true
 brew "openssl"
 brew "pandoc"
@@ -68,6 +69,8 @@ brew "sqlite3"
 brew "the_silver_searcher"
 brew "tmux"
 brew "tree"
+# utf8proc head required by neovim head.
+brew "utf8proc", head: true
 brew "util-linux"
 #brew "vim"
 brew "watch"
