@@ -20,9 +20,9 @@ devbox-old:
 # this snippet ensures all the moreutils binaries are linked
 # then overwrites the moreutils parallel with the gnu parallel,
 # and tests that it worked.
-FIX_PARALLEL_MOREUTILS := brew unlink parallel && \
+FIX_PARALLEL_MOREUTILS := brew unlink parallel sponge && \
 						  brew link --force --overwrite moreutils && \
-						  brew link --force --overwrite parallel && \
+						  brew link --force --overwrite parallel sponge && \
 						  parallel --version | head -n1 | grep -qE '^GNU parallel \d+' || \
 						  { echo "GNU parallel may not have installed correctly."; exit 1; }; \
 						  echo "Fixed moreutils and GNU parallel conflict."
@@ -41,13 +41,13 @@ brew/upgrade-neovim-head:
 
 brew/install:
 	@brew unlink moreutils
-	@brew unlink parallel
+	@brew unlink parallel sponge
 	@brew-tools install
 	@$(FIX_PARALLEL_MOREUTILS)
 
 brew/fix:
 	@brew unlink moreutils
-	@brew unlink parallel
+	@brew unlink parallel sponge
 	@$(FIX_PARALLEL_MOREUTILS)
 
 upgrade-all: BREW_FLAGS :=
