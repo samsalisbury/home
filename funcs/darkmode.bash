@@ -21,6 +21,18 @@ get-darkmode() {
 	"${CMD[@]}" 2>/dev/null || cat "$PALETTE_STATE" || echo Light
 }
 
+match-system-darkmode() {
+	local m="$(get-system-darkmode)"
+	[[ "$m" == "Dark" ]] && dark
+	[[ "$m" == "Light" ]] && light
+}
+
+get-system-darkmode() {
+	local PALETTE
+	CMD=(defaults read -g AppleInterfaceStyle)
+	"${CMD[@]}" 2>/dev/null || echo Light
+}
+
 reload-darkmode() {
 	local NAME
 	NAME="$(basename "${BASH_SOURCE[0]}")"
@@ -198,6 +210,4 @@ tmux-getenv() {
 	tmux show-environment | grep -E "^$1=" | cut -d= -f2
 }
 
-if [[ -z "$(tmux-getenv DARKMODE)" ]]; then
-	dark
-fi
+match-system-darkmode || true
