@@ -1,10 +1,13 @@
 basics() {
 
+	SHIM_PATH="$HOME/bin/shims"
+
 	# Add initial paths.
 	pathadd "/opt/homebrew/bin"
 	pathadd "$HOME/.local/share/bin" # Vendored binaries.
 	pathadd "$HOME/.local/bin"       # Vendored binaries.
 	pathadd "$HOME/bin"              # User binaries.
+	pathadd "$SHIM_PATH"             # Shims for other programs.
 
 	# Mac specific stuff
 	os darwin && {

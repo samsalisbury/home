@@ -1,4 +1,3 @@
-
 PALETTE_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/darkmode"
 PALETTE_STATE="$PALETTE_STATE_DIR/color-palette"
 export PALETTE_STATE_TMUX="$PALETTE_STATE_DIR/tmux-palette.conf"
@@ -10,19 +9,16 @@ system-palette() {
 	local PALETTE
 	# AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
 	# it returns "Dark". We return "Light" when it should be light.
-	PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || \
-		cat "$PALETTE_STATE" || \
-		echo Light)"
+	CMD=(defaults read -g AppleInterfaceStyle)
+	PALETTE="$("${CMD[@]}" 2>/dev/null || cat "$PALETTE_STATE" || echo Light)"
 	[ "$PALETTE" = "Dark" ] && dark
 	[ "$PALETTE" = "Light" ] && light
 }
 
 get-darkmode() {
 	local PALETTE
-	PALETTE="$(defaults read -g AppleInterfaceStyle 2> /dev/null || \
-		cat "$PALETTE_STATE" || \
-		echo Light)"
-	echo "$PALETTE"
+	CMD=(defaults read -g AppleInterfaceStyle)
+	"${CMD[@]}" 2>/dev/null || cat "$PALETTE_STATE" || echo Light
 }
 
 reload-darkmode() {
@@ -33,7 +29,7 @@ reload-darkmode() {
 }
 
 set_macos_palette() {
-	command -v osascript > /dev/null 2>&1 || {
+	command -v osascript >/dev/null 2>&1 || {
 		echo "Skipping macos palette, osascript not found." 1>&SC2086
 		return 0
 	}
@@ -49,8 +45,37 @@ set_macos_palette() {
 	EOF
 }
 
+# These commands' colours are controlled by environment variables.
+# We can't alter these, or add aliases/functions to running shells.
+# So the only way to reliably set their colours is to create an
+# executable shim in the PATH.
+set_command_colors() {
+	create_env_shim ls "LSCOLORS='$LSCOLORS'"
+	create_env_shim jq "JQ_COLORS='$JQ_COLORS'"
+}
+
+# create_env_shim ceates a shim executable that sets
+# environment variables before calling the original command.
+create_env_shim() {
+	PROG="$1"
+	shift
+	[[ -z "$SHIM_PATH" ]] && {
+		echo "SHIM_PATH not set; can't make colour shims." 1>&2
+		return 1
+	}
+	mkdir -p "$SHIM_PATH"
+	cat <<-EOF >"$SHIM_PATH/$PROG"
+		#!/bin/bash
+		PATH="$(sed -E "s|$SHIM_PATH:?||g" <<<"$PATH")"
+		$@ $PROG "\$@"
+	EOF
+	chmod +x "$SHIM_PATH/$PROG"
+}
+
 set_terminal_palette() {
-	echo "$MODE" > "$PALETTE_STATE"
+	echo "$MODE" >"$PALETTE_STATE"
+
+	set_command_colors
 
 	# Tell all nvims to update colorscheme.
 	nvim-remote tell-all "<ESC>:colorscheme $COLORSCHEME<CR>:set background=$BACKGROUND<CR>"
@@ -69,7 +94,7 @@ set_terminal_palette() {
 	# Write a config snippet for .tmux.conf to source. This avoids having to run a
 	# shell command to set the color _after_ the pane has loaded, thus avoiding the
 	# white flash.
-	cat <<-EOF > "$PALETTE_STATE_TMUX"
+	cat <<-EOF >"$PALETTE_STATE_TMUX"
 		set -g window-style '$WINDOW_STYLE'
 		set -g pane-border-style 'bg=$BG fg=$BORDER'
 		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
@@ -84,11 +109,11 @@ set_terminal_palette() {
 
 	tmux source-file "$PALETTE_STATE_TMUX"
 
-	if command -v osascript > /dev/null 2>&1; then
+	if command -v osascript >/dev/null 2>&1; then
 		osascript <<-EOF
 			tell application "Terminal"
 			  set background color of selected tab of window 1 to $TERMINAL_BG
-    		end tell
+			end tell
 		EOF
 	fi
 
@@ -140,6 +165,8 @@ light() {
 	COLORSCHEME=github-sam
 	LUALINE_THEME="ayu_light"
 	TERMINAL_BG="{65000, 65000, 65000}"
+	LSCOLORS="exfxcxdxbxegedabagacadah"
+	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;34"
 	set_terminal_palette
 	match-brightness >/dev/null 2>&1 || true
 }
@@ -159,8 +186,10 @@ dark() {
 	STATUS_SELECTED="$BLACK"
 	BACKGROUND=dark
 	COLORSCHEME=github
-	TERMINAL_BG="{0, 0, 0}"
 	LUALINE_THEME="tokyonight"
+	TERMINAL_BG="{0, 0, 0}"
+	LSCOLORS="Gxfxcxdxbxegedabagacad"
+	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;36"
 	set_terminal_palette
 	match-brightness >/dev/null 2>&1 || true
 }
