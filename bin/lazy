@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() {
+	local F="$1"
+	shift
+	printf "$F\n" "$@" 1>&2
+}
+die() {
+	local F="FATAL: $1"
+	shift
+	log "$F" "$@"
+	exit 1
+}
+err() {
+	local F="ERROR: $1"
+	shift
+	log "$F" "$@"
+	echo 1
+}
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || trap 'main "$@"' EXIT
+main() {
+	local CODE=$?
+	trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	[[ ${#@} != 0 ]] || {
+		log "Error: No arguments passed."
+		lazy.help
+		exit 2
+	}
+	local FUNC="lazy.$1"
+	shift
+	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	"$FUNC" "$@"
+}
+
+git status >/dev/null 2>&1 || die "$0 can only be run inside a git repository."
+
+lazy.help() {
+	cat <<-EOF
+		lazy - Manage lazyvim config + plugin updates.
+
+		Usage:
+		  lazy <command> [options]
+
+		Commands:
+	EOF
+
+	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^lazy\.')"
+	COMMANDS="$(grep -E '^lazy\.[^\.]+$' <<<"$FUNCS" | sed -E 's/lazy\.//')"
+	for C in $COMMANDS; do
+		if DESC_FUNC="$(grep -E '^lazy\.'"$C"'\.desc$' <<<"$FUNCS")"; then
+			DESC="$("$DESC_FUNC")"
+		else
+			DESC="No description provided."
+		fi
+		echo "  $C"$'\t'"$DESC"
+	done | column -t -s $'\t'
+}
+
+# Functions beginning lazy.<name> are subcommands that can be called
+# By passing the name as the first argument to this script.
+lazy.good() { lazy.push "good"; }
+lazy.bad() { lazy.push "bad"; }
+lazy.push() {
+	local COMMENT="$*"
+	[[ -z "$COMMENT" ]] && COMMENT="no comment"
+	local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
+	log "Commit message: $MESSAGE"
+	git reset
+
+	FILES=(
+		~/.config/nvim/lazy-lock.json
+		~/.config/nvim/lazyvim.json
+	)
+
+	git add "${FILES[@]}"
+
+	git commit -m "$MESSAGE"
+	git push
+}
+
+lazy.restore() { nvim --headless "+Lazy! restore" +qa; }
+lazy.update() {
+	lazy.push "pre-update checkpoint"
+	nvim --headless "+Lazy! update" +qa
+	lazy.push "post-update checkpoint"
+}
+
