@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+# shellcheck disable=SC2059
+log() {
+	local F="$1"
+	shift
+	printf "$F\n" "$@" 1>&2
+}
+die() {
+	local F="FATAL: $1"
+	shift
+	log "$F" "$@"
+	exit 1
+}
+err() {
+	local F="ERROR: $1"
+	shift
+	log "$F" "$@"
+	return 1
+}
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || trap 'git-recent.main "$@"' EXIT
+FUNC=branches
+git-recent.main() {
+	local CODE=$?
+	trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	[[ ${#@} != 0 ]] && {
+		FUNC="$1"
+		shift
+	}
+	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	"$FUNC" "$@"
+}
+
+# Your functions go here...
+
+branches() {
+	git branch --sort=-committerdate --format="%(committerdate:relative)%09%(refname:short)"
+}
+
+files() {
+	local fifty_commits_ago=$(git rev-parse HEAD~50)
+	local files_changed=$(git diff --name-only "$fifty_commits_ago" HEAD)
+	local modified_files=$(git ls-files -m)
+
+	local now=$(date +%s)
+	local file_details=()
+	local counter=0
+
+	# Loop through files and store their relative dates and names
+	for file in $files_changed; do
+		if [[ " $modified_files " =~ " $file " ]]; then
+			local mtime=$(stat -f "%m" "$file")
+		else
+			local mtime=$(git log -1 --format="%at" -- "$file")
+		fi
+		local relative_date=$(get_relative_date "$mtime" "$now")
+		file_details+=("$mtime $file")
+
+		# Increment counter and break if we reach 20
+		((counter++))
+		if ((counter == 20)); then
+			break
+		fi
+	done
+
+	# Sort files by modification time (most recent first)
+	IFS=$'\n' file_details=($(sort -r -n -k1 <<<"${file_details[*]}"))
+	unset IFS
+
+	# Determine max length of relative date string for alignment
+	local max_len=0
+	for detail in "${file_details[@]}"; do
+		local relative_date=$(get_relative_date "${detail%% *}" "$now")
+		local length=${#relative_date}
+		if ((length > max_len)); then max_len=$length; fi
+	done
+
+	# Output the files with aligned columns
+	for detail in "${file_details[@]}"; do
+		local mtime=${detail%% *}
+		local file=${detail#* }
+		local relative_date=$(get_relative_date "$mtime" "$now")
+		printf "%-${max_len}s  %s\n" "$relative_date" "$file"
+	done
+}
+
+get_relative_date() {
+	local date1=$1
+	local date2=$2
+	local diff=$((date2 - date1))
+
+	local second=1
+	local minute=$((60 * second))
+	local hour=$((60 * minute))
+	local day=$((24 * hour))
+	local month=$((30 * day))
+
+	if ((diff < minute)); then
+		echo "$diff seconds ago"
+	elif ((diff < hour)); then
+		echo "$((diff / minute)) minutes ago"
+	elif ((diff < day)); then
+		echo "$((diff / hour)) hours ago"
+	elif ((diff < day * 2)); then
+		echo "Yesterday"
+	elif ((diff < month)); then
+		echo "$((diff / day)) days ago"
+	else
+		echo "$((diff / month)) months ago"
+	fi
+}
+
