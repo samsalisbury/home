@@ -1,0 +1,57 @@
+### git-dotfiles section (do not edit)
+# Ignore everything except this file by default.
+/*
+!/home.gitignore
+### End of git-dotfiles section.
+
+# Common ignore patterns.
+*.env
+*.orig
+*.log
+*.bak
+.DS_Store
+
+# Files that commonly contain credentials.
+auth.*
+*.ign
+*.json
+*.yaml
+*.yml
+
+# Unignore some top-level directories, we will re-ignore some of their contents
+# later. (This is needed because once a dir is excluded it can't be re-included.)
+!/.config
+/.config/containers
+
+
+#/.config/gh
+#/.config/containers
+#/.config/github-copilot
+#/.config/siyuan
+#/.config/fish
+
+!/.config/nvim
+
+!/.bash_profile
+!/.bashrc.d
+
+!/.tmux
+/.tmux/plugins
+/.tmux/resurrect
+!/.tmux.conf
+!/.tmux-osx.conf
+
+!/.bashrc
+!/.config/nvim/lua
+!/funcs
+
+!/bin
+/bin/shims
+
+!/Brewfile
+
+!/fixes
+
+!/funcs
+
+!/Makefile
