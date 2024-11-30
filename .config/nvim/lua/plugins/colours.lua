@@ -1,4 +1,4 @@
-local cmd = "bash -c 'source ~/funcs/darkmode.bash && get-darkmode'"
+local cmd = "bash -c 'darkmode get'"
 local raw = vim.fn.system(cmd)
 local C = raw:gsub("%s+", "")
 if C == "Light" then
@@ -13,6 +13,8 @@ end
 
 require("lualine")
 return {
+  { "Shatur/neovim-ayu" },
+  { "folke/tokyonight.nvim" },
   { "cormacrelf/vim-colors-github" },
   {
     "LazyVim/LazyVim",

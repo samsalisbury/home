@@ -1,6 +1,6 @@
 basics() {
 
-	SHIM_PATH="$HOME/bin/shims"
+	export SHIM_PATH="$HOME/bin/shims"
 
 	# Add initial paths.
 	pathadd "/opt/homebrew/bin"
