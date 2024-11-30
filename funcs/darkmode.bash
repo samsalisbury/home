@@ -22,15 +22,22 @@ get-darkmode() {
 }
 
 match-system-darkmode() {
-	local m="$(get-system-darkmode)"
-	[[ "$m" == "Dark" ]] && dark
-	[[ "$m" == "Light" ]] && light
+	local system_palette terminal_palette
+	system_palette="$(get-system-darkmode)"
+	terminal_palette="$(get-darkmode)"
+	[[ "$terminal_palette" = "$system_palette" ]] && return
+	[[ "$system_palette" = "Dark" ]] && dark
+	[[ "$system_palette" = "Light" ]] && light
 }
 
 get-system-darkmode() {
 	local PALETTE
 	CMD=(defaults read -g AppleInterfaceStyle)
 	"${CMD[@]}" 2>/dev/null || echo Light
+}
+
+get-terminal-darkmode() {
+	tmux-getenv DARKMODE
 }
 
 reload-darkmode() {
