@@ -1,3 +1,3 @@
 load-darkmode() {
-	source "$HOME/funcs/darkmode.bash"
+	source "$HOME/bin/darkmode"
 }

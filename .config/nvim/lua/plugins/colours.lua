@@ -14,7 +14,6 @@ end
 require("lualine")
 return {
   { "Shatur/neovim-ayu" },
-  { "folke/tokyonight.nvim" },
   { "cormacrelf/vim-colors-github" },
   {
     "LazyVim/LazyVim",

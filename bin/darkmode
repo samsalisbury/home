@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
 # shellcheck disable=SC2059
 log() {
 	local F="$1"
@@ -19,11 +18,21 @@ err() {
 	log "$F" "$@"
 	echo 1
 }
-# Set exit trap if this file was directly invoked rather than sourced.
+
+PALETTE_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/darkmode"
+PALETTE_STATE="$PALETTE_STATE_DIR/color-palette"
+export PALETTE_STATE_TMUX="$PALETTE_STATE_DIR/tmux-palette.conf"
+mkdir -p "$PALETTE_STATE_DIR"
+
+# Set error handling and exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
-(return 0 2>/dev/null) || trap 'main "$@"' EXIT
+(return 0 2>/dev/null) || {
+	set -Eeuo pipefail
+	trap 'main "$@"' EXIT
+}
 main() {
 	local CODE=$?
+
 	trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
 	[[ ${#@} != 0 ]] || {
@@ -63,17 +72,12 @@ darkmode.help.desc() {
 	echo "Show this help message."
 }
 
-darkmode.get() { get-darkmode; }
+darkmode.get() { get-system-darkmode; }
 darkmode.match() { match-system-darkmode; }
 darkmode.dark() { dark; }
 darkmode.light() { light; }
 darkmode.on() { dark; }
 darkmode.off() { light; }
-
-PALETTE_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/darkmode"
-PALETTE_STATE="$PALETTE_STATE_DIR/color-palette"
-export PALETTE_STATE_TMUX="$PALETTE_STATE_DIR/tmux-palette.conf"
-mkdir -p "$(dirname "$PALETTE_STATE")"
 
 # system-palette tells tmux to copy the system's color palette if possible,
 # or to continue to respect the currently manually set palette otherwise.
@@ -82,34 +86,28 @@ system-palette() {
 	# AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
 	# it returns "Dark". We return "Light" when it should be light.
 	CMD=(defaults read -g AppleInterfaceStyle)
-	PALETTE="$("${CMD[@]}" 2>/dev/null || cat "$PALETTE_STATE" || echo Light)"
+	PALETTE="$("${CMD[@]}" 2>/dev/null || echo Light)"
 	[ "$PALETTE" = "Dark" ] && dark
 	[ "$PALETTE" = "Light" ] && light
 }
 
-get-darkmode() {
-	local PALETTE
-	CMD=(defaults read -g AppleInterfaceStyle)
-	"${CMD[@]}" 2>/dev/null || cat "$PALETTE_STATE" || echo Light
-}
+match-system-darkmode() (
+	local system_palette terminal_palette
+	system_palette="$(get-system-darkmode)"
+	terminal_palette="$(get-terminal-darkmode)"
+	[[ "$terminal_palette" = "$system_palette" ]] && return
+	[[ "$system_palette" = "Dark" ]] && dark
+	[[ "$system_palette" = "Light" ]] && light
+)
 
-match-system-darkmode() {
-	local m="$(get-system-darkmode)"
-	[[ "$m" == "Dark" ]] && dark
-	[[ "$m" == "Light" ]] && light
+get-terminal-darkmode() {
+	tmux-getenv DARKMODE
 }
 
 get-system-darkmode() {
 	local PALETTE
 	CMD=(defaults read -g AppleInterfaceStyle)
 	"${CMD[@]}" 2>/dev/null || echo Light
-}
-
-reload-darkmode() {
-	local NAME
-	NAME="$(basename "${BASH_SOURCE[0]}")"
-	FILEPATH="$HOME/funcs/$NAME"
-	source "$FILEPATH"
 }
 
 set_macos_palette() {
@@ -191,7 +189,7 @@ set_terminal_palette() {
 		set  pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
 	EOF
 
-	tmux source-file "$PALETTE_STATE_TMUX"
+	[[ -f "$PALETTE_STATE" ]] && tmux source-file "$PALETTE_STATE_TMUX"
 
 	if command -v osascript >/dev/null 2>&1; then
 		osascript <<-EOF
@@ -203,9 +201,11 @@ set_terminal_palette() {
 
 	# Set the style for each open window first.
 	ORIG_WINDOW="$(tmux display-message -p '#I')"
-	for W in $(tmux list-windows -a -F '#{window_id}'); do
-		tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
-	done
+	if [[ -f "$PALETTE_STATE_TMUX" ]]; then
+		for W in $(tmux list-windows -a -F '#{window_id}'); do
+			tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
+		done
+	fi
 	tmux select-window -t "$ORIG_WINDOW"
 
 	ORIG_PANE="$TMUX_PANE"
