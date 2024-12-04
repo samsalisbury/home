@@ -5,7 +5,7 @@ if C == "Light" then
   ColorScheme = "github-sam"
   LualineColorScheme = "ayu_light"
 elseif C == "Dark" then
-  Colorscheme = "github"
+  Colorscheme = "tokyonight-moon"
   LualineColorScheme = "tokyonight"
 else
   error(string.format("could not determine color scheme, got: %q", C))
@@ -14,7 +14,8 @@ end
 require("lualine")
 return {
   { "Shatur/neovim-ayu" },
-  { "cormacrelf/vim-colors-github" },
+  --{ "cormacrelf/vim-colors-github" },
+  { "projekt0n/github-nvim-theme" },
   {
     "LazyVim/LazyVim",
     opts = {
@@ -25,7 +26,8 @@ return {
     "nvim-lualine/lualine.nvim",
     opts = {
       options = {
-        theme = LualineColorScheme,
+        --theme = LualineColorScheme,
+        theme = "auto",
       },
     },
   },

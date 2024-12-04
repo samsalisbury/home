@@ -160,10 +160,10 @@ set_terminal_palette() {
 	set_command_colors
 
 	# Tell all nvims to update colorscheme.
-	nvim-remote tell-all "<ESC>:colorscheme $COLORSCHEME<CR>:set background=$BACKGROUND<CR>"
-	# Tell all nvimst to update lualine colorscheme.
-	LUA="require('lualine').setup( { options = vim.tbl_deep_extend('force', require('lualine').get_config(), {theme='$LUALINE_THEME'}) } )"
-	nvim-remote tell-all "<ESC>:lua $LUA<CR>"
+	nvim-remote tell-all "<ESC>:set background=$BACKGROUND<CR>:colorscheme $COLORSCHEME<CR>"
+	# Tell all nvims to update lualine colorscheme.
+	#LUA="require('lualine').setup( { options = vim.tbl_deep_extend('force', require('lualine').get_config(), {theme='$LUALINE_THEME'}) } )"
+	#nvim-remote tell-all "<ESC>:lua $LUA<CR>"
 
 	#
 	#
@@ -247,7 +247,7 @@ light() {
 	STATUS_SELECTED="brightwhite"
 	BACKGROUND=light
 	COLORSCHEME=github-sam
-	LUALINE_THEME="ayu_light"
+	export LUALINE_THEME="ayu_light"
 	TERMINAL_BG="{65000, 65000, 65000}"
 	LSCOLORS="exfxcxdxbxegedabagacadah"
 	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;34"
@@ -269,8 +269,8 @@ dark() {
 	STATUS_FG=black
 	STATUS_SELECTED="$BLACK"
 	BACKGROUND=dark
-	COLORSCHEME=github
-	LUALINE_THEME="tokyonight"
+	COLORSCHEME=tokyonight-moon
+	export LUALINE_THEME="dracula"
 	TERMINAL_BG="{0, 0, 0}"
 	LSCOLORS="Gxfxcxdxbxegedabagacad"
 	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;36"
