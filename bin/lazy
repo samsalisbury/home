@@ -77,6 +77,15 @@ lazy.push() {
 		~/.config/nvim/lazyvim.json
 	)
 
+	modified=false
+	for F in "${FILES[@]}"; do
+		git ls-files -m | grep -qF "$F" && modified=true
+	done
+	$modified || {
+		log "No modified lazyvim files to commit."
+		return 0
+	}
+
 	git add "${FILES[@]}"
 
 	git commit -m "$MESSAGE"
@@ -89,4 +98,3 @@ lazy.update() {
 	nvim --headless "+Lazy! update" +qa
 	lazy.push "post-update checkpoint"
 }
-
