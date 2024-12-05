@@ -70,11 +70,14 @@ lazy.push() {
 	[[ -z "$COMMENT" ]] && COMMENT="no comment"
 	local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
 	log "Commit message: $MESSAGE"
+
+	cd "$HOME" || die "Could not cd to home directory."
+
 	git reset
 
 	FILES=(
-		~/.config/nvim/lazy-lock.json
-		~/.config/nvim/lazyvim.json
+		.config/nvim/lazy-lock.json
+		.config/nvim/lazyvim.json
 	)
 
 	modified=false
