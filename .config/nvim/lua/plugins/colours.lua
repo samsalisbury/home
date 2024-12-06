@@ -2,10 +2,10 @@ local cmd = "bash -c 'darkmode get'"
 local raw = vim.fn.system(cmd)
 local C = raw:gsub("%s+", "")
 if C == "Light" then
-  ColorScheme = "github-sam"
+  ColorScheme = "github_light"
   LualineColorScheme = "ayu_light"
 elseif C == "Dark" then
-  Colorscheme = "tokyonight-moon"
+  Colorscheme = "github_dark_dimmed"
   LualineColorScheme = "tokyonight"
 else
   error(string.format("could not determine color scheme, got: %q", C))
