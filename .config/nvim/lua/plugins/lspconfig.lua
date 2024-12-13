@@ -2,15 +2,22 @@ return {
   {
     "neovim/nvim-lspconfig",
     opts = {
+      -- Disable inline type annotations for certain languages.
+      inlay_hints = {
+        enabled = true,
+        exclude = { "go" },
+      },
+      flags = {
+        debounce_text_changes = 500,
+      },
       default_config = {
-        flags = {
-          debounce_text_changes = 500,
-        },
         servers = {
           ltex = false,
           ltex_ls = false,
         },
-        inlay_hints = { enabled = false },
+        diagnostics = {
+          virtual_text = false,
+        },
         ltex = {
           enabled = false,
         },
