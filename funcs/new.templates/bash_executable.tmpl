@@ -1,14 +1,15 @@
 
 #!/usr/bin/env bash
 
-set -Eeuo pipefail
 # shellcheck disable=SC2059
-log() { local F="$1"; shift; printf "$F\n" "$@" 1>&2; }
-die() { local F="FATAL: $1"; shift; log "$F" "$@"; exit 1; }
-err() { local F="ERROR: $1"; shift; log	"$F" "$@"; echo 1; }
+log() { printf "$1\n" "${@:2}" 1>&2; }
+die() { log "FATAL: $1" "${@:2}"; exit 1; }
 # Set exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
-(return 0 2>/dev/null) || trap 'main "$@"' EXIT
+(return 0 2>/dev/null) || {
+	set -Eeuo pipefail
+	trap 'main "$@"' EXIT
+}
 main() {
 	local CODE=$?; trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
