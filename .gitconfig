@@ -51,3 +51,5 @@
 	useHttpPath = true
 [credential "https://github.com"]
 	username = samsalisbury
+[http]
+	cookiefile = /Users/sam/.gitcookies
