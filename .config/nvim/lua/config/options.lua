@@ -24,3 +24,12 @@ vim.opt.foldlevel = 999
 --vim.opt.foldenable = false
 
 vim.lsp.set_log_level("warn")
+
+vim.filetype.add({
+  extension = {
+    gotmpl = "gotmpl",
+  },
+  pattern = {
+    [".+.(go)?tmpl"] = "html",
+  },
+})
