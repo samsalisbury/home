@@ -55,3 +55,4 @@ auth.*
 !/funcs
 
 !/Makefile
+.config/zed/prompts
