@@ -67,13 +67,12 @@ lazy.good() { lazy.push "good"; }
 lazy.bad() { lazy.push "bad"; }
 lazy.push() {
 	local COMMENT="$*"
-	[[ -z "$COMMENT" ]] && COMMENT="no comment"
-	local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
-	log "Commit message: $MESSAGE"
 
 	cd "$HOME" || die "Could not cd to home directory."
 
-	git reset
+	git reset >/dev/null 2>&1 || {
+		return "$(err "Git reset failed.")"
+	}
 
 	FILES=(
 		.config/nvim/lazy-lock.json
@@ -82,12 +81,16 @@ lazy.push() {
 
 	modified=false
 	for F in "${FILES[@]}"; do
-		git ls-files -m | grep -qF "$F" && modified=true
+		git ls-files -m | grep -qF "$F" >/dev/null 2>&1 && modified=true
 	done
 	$modified || {
 		log "No modified lazyvim files to commit."
 		return 0
 	}
+
+	[[ -z "$COMMENT" ]] && COMMENT="no comment"
+	local MESSAGE="conf(nvim): plugin snapshot ($COMMENT)"
+	log "Commit message: $MESSAGE"
 
 	git add "${FILES[@]}"
 
@@ -98,6 +101,15 @@ lazy.push() {
 lazy.restore() { nvim --headless "+Lazy! restore" +qa; }
 lazy.update() {
 	lazy.push "pre-update checkpoint"
-	nvim --headless "+Lazy! update" +qa
-	lazy.push "post-update checkpoint"
+	nvim --headless "+Lazy! update" +qa >/dev/null 2>&1 || {
+		return "$(err Update failed.)"
+	}
+	git diff --exit-code -- .config/nvim/lazy-lock.json >/dev/null 2>&1 || {
+		echo "### Updated plugins:"
+		git diff -- .config/nvim/lazy-lock.json | grep ^+ | sed -E 's/^\+[[:space:]]+"([^"]+)".*$/\1/g' | column
+		lazy.push "post-update checkpoint"
+		log "All plugins up to date."
+		return 0
+	}
+	log "All plugins already up to date."
 }
