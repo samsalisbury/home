@@ -23,6 +23,13 @@ auth.*
 !/.config
 /.config/containers
 
+# Ignore logs.
+**/logs/*.txt
+**/logs/*.log
+**/logs/*.json
+
+# Ignore fabric config (lots of stuff there should be in cache I think).
+.config/fabric
 
 #/.config/gh
 #/.config/containers
@@ -56,3 +63,4 @@ auth.*
 
 !/Makefile
 .config/zed/prompts
+
