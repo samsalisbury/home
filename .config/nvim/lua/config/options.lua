@@ -33,3 +33,5 @@ vim.filetype.add({
     [".+.(go)?tmpl"] = "html",
   },
 })
+
+vim.opt.showtabline = 2
