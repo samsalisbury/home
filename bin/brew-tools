@@ -62,13 +62,13 @@ outdated_brewfile() {
 upgrade_outdated_brewfile_deps() {
 	SKIP_PATTERN="${1:-}"
 	if [[ -n "$SKIP_PATTERN" ]]; then
-		P="${printf '|^%s$' "$@"}"
-		NAMES="$(outdated_brewfile_names | grep -Ev "${P:1}")"
+		P="$(printf '|^%s$' "$@")"
+		NAMES=($(outdated_brewfile_names | grep -Ev "${P:1}"))
 	else
-		NAMES="$(outdated_brewfile_names)"
+		NAMES=($(outdated_brewfile_names))
 	fi
 	# shellcheck disable=SC2046
-	brew upgrade $NAMES
+	brew upgrade "${NAMES[@]}"
 }
 
 install() {
