@@ -34,6 +34,18 @@ return {
       return nil
     end
 
+    -- Focus the neo-tree window if one exists.
+    local function focus_neotree()
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].filetype == "neo-tree" then
+          vim.api.nvim_set_current_win(win)
+          break
+        end
+      end
+    end
+
+    -- Create or update a floating window anchored to the main window.
     local function show_no_file_message()
       local main_win = get_main_window()
       if not main_win then
@@ -65,7 +77,7 @@ return {
           border = "none",
         }
         no_file_win = vim.api.nvim_open_win(no_file_buf, false, opts)
-        -- Use the standard float background so it matches your theme.
+        -- Use the standard floating background so that it adapts to dark/light themes.
         vim.api.nvim_win_set_option(no_file_win, "winhl", "Normal:NormalFloat")
       end
 
@@ -122,6 +134,7 @@ return {
         vim.opt.showtabline = 0
         if is_neotree_open() then
           show_no_file_message()
+          focus_neotree()  -- Automatically focus neo-tree so that the placeholder stays unfocused.
         else
           hide_no_file_message()
         end
