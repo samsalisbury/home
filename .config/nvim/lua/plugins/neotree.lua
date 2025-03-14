@@ -9,6 +9,7 @@ return {
         hide_gitignored = true,
         hide_by_name = {
           ".git",
+          ".gitworktrees",
           ".DS_Store",
         },
         never_show = {},
