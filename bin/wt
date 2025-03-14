@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2059
+printfln() { printf "$1\n" "${@:2}"; }
+log() { printfln "$@" 1>&2; }
+err() { log "ERROR: $1" "${@:2}" && echo 1; }
+die() { log "FATAL: $1" "${@:2}" && exit 1; }
+usage() { log "$@" && wt.help && exit 2; }
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || { set -Eeuo pipefail && trap 'main "$@"' EXIT; }
+main() {
+	local CODE=$? && trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^wt\.')"
+	COMMANDS="$(grep -E '^wt\.[^\.]+$' <<<"$FUNCS" | sed -E 's/wt\.//')"
+	[[ ${#@} != 0 ]] || usage "No arguments passed."
+	local FUNC="wt.$1" && shift
+	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || usage "Function '%s' not defined." "$FUNC"
+	"$FUNC" "$@"
+}
+GET_DESC=false
+GET_HELP=false
+
+get_desc() (GET_DESC=true "$1")
+get_help() (GET_HELP=true "$1")
+
+# desc parses the stdin for a description in the form:
+#
+#     Short description of command.
+#
+#     args: ARG1 ARG2 ARG3 ...
+#
+#     Long description of command,
+#     which may span multiple lines.
+#
+# It checks the arguments passed and sets variables for each argument.
+parsearg() {
+	ARG_SPEC="$1"
+	ARG_NAME="$(grep -Eo '^[A-Za-z]+[A-Za-z0-9_-]+' <<<"$ARG_SPEC")"
+	ARG_MODIFYER="${ARG_SPEC#"$ARG_NAME"}"
+	[[ "$ARG_MODIFYER" == "?" ]] && OPTIONAL=true
+	[[ "$ARG_MODIFYER" == "..." ]] && VARIADIC="$ARG_NAME"
+	[[ "$ARG_MODIFYER" != "" ]] && ! $OPTIONAL && ! $VARIADIC && {
+		die "Invalid argument modifier: %s" "$ARG_MODIFYER"
+	}
+}
+array_is_empty() { [[ -z "${!1-}" ]]; }
+
+desc() {
+	text="$(cat -)"
+	short="$(head -n1 <<<"$text")"
+	# Getting just the description, return failure now.
+	$GET_DESC && echo "$short" && return 1
+
+	# Parse the args if any.
+	read -ra ARGS < <(grep -E '^args:[[:space:]]*(.*)$' <<<"$text" | sed -E 's/args:[[:space:]]*([^\n]*)/\1/g') || true
+
+	$GET_HELP && {
+		printfln "%s\n" "$short"
+		echo Usage:
+		echo -n "  $(tr '.' ' ' <<<"${FUNCNAME[1]}")"
+		array_is_empty ARGS || {
+			for ARG in "${ARGS[@]}"; do (
+				parsearg "$ARG"
+				"${OPTIONAL:-false}" && echo -n " ["
+				echo -n "$ARG_NAME"
+				[[ -n "$VARIADIC" ]] && echo -n "..."
+				{ "${OPTIONAL:-false}" && echo -n "] "; } || echo -n " "
+
+			); done
+		}
+
+		echo
+		tail -n+3 <<<"$text"
+		echo
+		return 1
+	}
+
+	{ array_is_empty ARGS && nargs=0; } || nargs="${#ARGS[@]}"
+	npassed="${#@}"
+	maxargs=$((nargs > npassed ? nargs : npassed))
+	OPTIONAL=false
+	VARIADIC=
+	for ((i = 0; i < maxargs; i++)); do
+		ARG_NAME=""
+		((i < nargs)) && parsearg "${ARGS[$i]}"
+
+		# For variadic arguments, just collect all remaining arguments in one go.
+		[[ -n "$VARIADIC" ]] && {
+			read -ra VARIADIC <<<"$@"
+			continue
+		}
+		[[ -z "$ARG_NAME" ]] && log "ERROR: Too many arguments passed." && return 1
+
+		ARG_VAL=""
+		((i < npassed)) && ARG_VAL="$1" && shift
+		[[ -z "$ARG_VAL" ]] && ! $OPTIONAL && {
+			log "Please specify '%s' (arg %d)" "$ARG_NAME" "$((i + 1))"
+			return 1
+		}
+		declare -g "$ARG_NAME"="$ARG_VAL"
+	done
+
+	return 0
+
+}
+
+# shellcheck disable=SC2120 # args can be passed externally
+wt.help() {
+	desc "$@" <<-EOF || return 0
+		Get help on a command.
+		args: TOPIC?
+
+		Pass a command name as topic to get help on that command.
+	EOF
+
+	[[ -n "$TOPIC" ]] && {
+		get_help "wt.$TOPIC" || die "No help available for '%s'." "$TOPIC"
+		return 0
+	}
+
+	cat <<-EOF
+		wt - A bash script template.
+
+		Usage:
+		  wt <command> [options]
+
+		Commands:
+	EOF
+
+	for C in $COMMANDS; do (
+		DESC="$(get_desc "wt.$C")"
+		printfln "  %s\t%s" "$C" "$DESC"
+	); done | column -t -s $'\t'
+}
+
+wt.new+config() {
+	cat <<-EOF
+		Configure the default directory for new worktrees.
+		args: DIR
+
+		By default this command will create the worktree for BRANCH in the
+		.gitworktrees/BRANCH directory in the root of your repository.
+	EOF
+}
+
+wt.new() {
+	desc "$@" <<-EOF || return 0
+		Create a new git worktree.
+		args: BRANCH DIR?
+
+		By default this command will create the worktree for BRANCH in the
+		.gitworktrees/BRANCH directory in the root of your repository.
+	EOF
+
+	ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || die "Not in a git repository."
+	[[ -n "$DIR" ]] || DIR="$ROOT/.gitworktrees/$BRANCH"
+
+	git worktree add "$DIR" "$BRANCH"
+}
+
+wt.list() {
+	desc "$@" <<-EOF || return 0
+		List all git worktrees.
+	EOF
+	git worktree list
+}
