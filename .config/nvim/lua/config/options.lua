@@ -19,12 +19,14 @@ vim.lsp.inlay_hint.enable(false)
 vim.g.markdown_folding = 1
 vim.opt.foldlevel = 999
 
---vim.opt.foldmethod = "expr"
---vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
---vim.opt.foldenable = false
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
+vim.opt.foldenable = false
 
 vim.lsp.set_log_level("warn")
 
+-- vim.opt.showtabline = 2
+--
 vim.filetype.add({
   extension = {
     gotmpl = "gotmpl",
@@ -34,4 +36,8 @@ vim.filetype.add({
   },
 })
 
--- vim.opt.showtabline = 2
+vim.filetype.add({
+  extension = {
+    sarif = "json",
+  },
+})
