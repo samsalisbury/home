@@ -41,11 +41,45 @@ parsearg() {
 	ARG_MODIFYER="${ARG_SPEC#"$ARG_NAME"}"
 	[[ "$ARG_MODIFYER" == "?" ]] && OPTIONAL=true
 	[[ "$ARG_MODIFYER" == "..." ]] && VARIADIC="$ARG_NAME"
-	[[ "$ARG_MODIFYER" != "" ]] && ! $OPTIONAL && ! $VARIADIC && {
+	[[ "$ARG_MODIFYER" != "" ]] && ! $OPTIONAL && [[ -z "$VARIADIC" ]] && {
 		die "Invalid argument modifier: %s" "$ARG_MODIFYER"
 	}
 }
 array_is_empty() { [[ -z "${!1-}" ]]; }
+array_len() {
+	echo "${#@}"
+}
+
+foreach() {
+	local action="$1" maxlen=0 len=0
+	[[ ${#@} -ge 2 ]] || die "expect at least 2 args"
+	for A in "${@:2}"; do
+		len="$(array_len "${!A[@]}")"
+		maxlen=$((maxlen > len ? maxlen : len))
+	done
+	log "maxlen=$maxlen"
+	for ((i = 0; i < maxlen; i++)); do
+		args=()
+		for A in "${@:2}"; do
+			args+=("${!A[$i]:-_}")
+		done
+		log "running: $action $i ${args[*]}"
+		"$action" "$i" "${args[@]}"
+	done
+}
+
+print_args() { echo "$@"; }
+
+wt.test() {
+	desc "$@" <<-EOF || return 0
+		Describe a command.
+		args: ARRAYS...
+
+		Pass a command name as argument to get a description of that command.
+	EOF
+
+	foreach print_args "${@}"
+}
 
 desc() {
 	text="$(cat -)"
@@ -144,6 +178,8 @@ wt.new+config() {
 		.gitworktrees/BRANCH directory in the root of your repository.
 	EOF
 }
+branch_exists() { git show-ref --verify --quiet "refs/heads/$1"; }
+main_wt_root() { git -C "$(git worktree list | head -n1 | cut -d' ' -f1)" rev-parse --show-toplevel; }
 
 wt.new() {
 	desc "$@" <<-EOF || return 0
@@ -152,10 +188,16 @@ wt.new() {
 
 		By default this command will create the worktree for BRANCH in the
 		.gitworktrees/BRANCH directory in the root of your repository.
+		If BRANCH does not exist, it will be created based on the current branch.
 	EOF
 
-	ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || die "Not in a git repository."
+	ROOT="$(main_wt_root)" || die "Not in a git repository."
 	[[ -n "$DIR" ]] || DIR="$ROOT/.gitworktrees/$BRANCH"
+
+	mkdir -p "$ROOT/.gitworktrees"
+	echo "*" >"$ROOT/.gitworktrees/.gitignore"
+
+	branch_exists "$BRANCH" || git branch "$BRANCH"
 
 	git worktree add "$DIR" "$BRANCH"
 }
