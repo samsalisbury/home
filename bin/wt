@@ -202,9 +202,48 @@ wt.new() {
 	git worktree add "$DIR" "$BRANCH"
 }
 
+names() {
+	prefix="$(main_wt_root)/.gitworktrees/"
+	echo "main"
+	git worktree list | cut -d' ' -f1 | tail -n+2 | sed -E "s|$prefix||"
+}
+
+wt.names() {
+	desc "$@" <<-EOF || return 0
+		List all worktree names.
+	EOF
+	names
+}
+
 wt.list() {
 	desc "$@" <<-EOF || return 0
 		List all git worktrees.
 	EOF
 	git worktree list
+}
+
+wt.main() {
+	desc "$@" <<-EOF || return 0
+		Show the root of the main worktree.
+	EOF
+	main_wt_root
+}
+
+wt.switch() {
+	desc "$@" <<-EOF || return 0
+		Print the root of the worktree named NAME.
+
+		args: NAME
+
+		The special name "main" means the main worktree.
+
+		TODO: Implement this as an installable function to actually cd to the worktree.
+		TODO: Consider integrating with tmux like the 'src' command.
+	EOF
+	[[ "$NAME" == "main" ]] && main_wt_root && return 0
+	prefix="$(main_wt_root)/.gitworktrees"
+	dir="$prefix/$NAME"
+	[[ -d "$dir" ]] || die "Worktree '%s' does not exist, options are:\n%s" "$NAME" "$(names)"
+	echo "$dir"
+
 }
