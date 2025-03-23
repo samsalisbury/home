@@ -9,6 +9,10 @@ tmux-start-or-attach() {
 		dbg "Tmux is not installed so do nothing."
 		return 0
 	}
+	[[ -z "$VSCODE_SHELL_LOGIN" ]] || {
+		dbg "Inside VSCode so don't launch tmux."
+		return 0
+	}
 	[[ -z "${TMUX:-}" ]] || {
 		set_window_title "$(current_session_name)"
 		dbg "We are inside TMUX already so do nothing."
@@ -21,7 +25,7 @@ tmux-start-or-attach() {
 		tmux -2 || return 1
 		return "${STOP:?}"
 	}
-	UNATTACHED="$(grep 'not attached$' <<< "$SESSIONS" | head -n 1 | cut -d '|' -f1)" || {
+	UNATTACHED="$(grep 'not attached$' <<<"$SESSIONS" | head -n 1 | cut -d '|' -f1)" || {
 		ALL_ATTACHED=true
 	}
 	[[ -n "$UNATTACHED" ]] || {
@@ -41,7 +45,8 @@ tmux-start-or-attach() {
 
 current_session_name() { tmux display-message -p '#S'; }
 
-set_window_title() { local TITLE="$1"
+set_window_title() {
+	local TITLE="$1"
 	has osascript || return 0
 	cat <<-EOF | osascript
 		tell application "Terminal"
