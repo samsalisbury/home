@@ -2,6 +2,7 @@
   "extras": [
     "lazyvim.plugins.extras.formatting.prettier",
     "lazyvim.plugins.extras.lang.go",
+    "lazyvim.plugins.extras.lang.ruby",
     "lazyvim.plugins.extras.ui.mini-indentscope",
     "lazyvim.plugins.extras.util.octo"
   ],
