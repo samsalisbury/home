@@ -19,6 +19,7 @@
 [diff]
 	tool = Kaleidoscope
 	wsErrorHighlight = all
+	algorithm = histogram
 [log]
 	showSignature = false
 #[url "git@github.com:"]
