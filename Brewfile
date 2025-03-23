@@ -16,6 +16,7 @@ brew "entr"
 brew "fd" # find alternative
 brew "ffmpeg"
 brew "findutils"
+brew "fzf"
 brew "gawk"
 brew "git"
 brew "git-lfs"
