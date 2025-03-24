@@ -4,7 +4,7 @@
 printfln() { printf "$1\n" "${@:2}"; }
 log() { printfln "$@" 1>&2; }
 err() { log "ERROR: $1" "${@:2}" && echo 1; }
-die() { log "FATAL: $1" "${@:2}" && exit 1; }
+die() { log "FATAL: ${1:-} (line ${BASH_LINENO[0]}})" "${@:2}" && exit 1; }
 usage() { log "$@" && wt.help && exit 2; }
 # Set exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
@@ -179,26 +179,121 @@ wt.new+config() {
 	EOF
 }
 branch_exists() { git show-ref --verify --quiet "refs/heads/$1"; }
+remote_branch_ref() { git show-ref --verify --quiet "refs/remotes/$1"; }
 main_wt_root() { git -C "$(git worktree list | head -n1 | cut -d' ' -f1)" rev-parse --show-toplevel; }
 
-wt.new() {
+wt.rm() {
 	desc "$@" <<-EOF || return 0
-		Create a new git worktree.
-		args: BRANCH DIR?
+		Remove a git worktree.
+		args: NAME
+
+		Remove the worktree named NAME.
+	EOF
+
+	rm_wt_dir "$NAME"
+}
+
+create_wt_dir() {
+	NAME="$1"
+	[[ -n "$NAME" ]] || die "No worktree name specified."
+	ensure_wt_base_dir || die
+	DIR="$(get_wt_path "$NAME")" || die
+	[[ -d "$DIR" ]] && die "Directory '%s' already exists." "$DIR"
+	mkdir -p "$DIR" || die "Unable to create directory '%s'." "$DIR"
+}
+
+rm_wt_dir() {
+	DIR="$(get_wt_path "$1")" || die
+	[[ -d "$DIR" ]] || die "Directory '%s' does not exist." "$DIR"
+	git worktree remove "$DIR"
+}
+get_wt_path() { echo "$(get_wt_base_dir)/${1:?}"; }
+get_wt_base_dir() { echo "$(main_wt_root)/.gitworktrees" || die "Not in a git repository."; }
+ensure_wt_base_dir() {
+	DIR="$(get_wt_base_dir)" && mkdir -p "$DIR" && echo "*" >"$DIR/.gitignore"
+}
+
+wt.replace() {
+	desc "$@" <<-EOF || return 0
+		Replace a worktree with a new one.
+		args: BRANCH_SPEC
+
+		BRANCH_SPEC can be in two forms:
+
+		1. BRANCH, a simple branch name, e.g. 'feature/branch'.
+		   In this case, the branch will be checked out into the worktree if
+		   it exists.
+		   If it does not exist, it will be created based on the current branch.
+
+		2. BASE:BRANCH, e.g. main:feature/branch.
+		   In this case, the branch NEW will be created based on the branch BASE.
+		   If BASE is not specified, it defaults to the current branch.
+		   If BASE is remote, an attempt will be made to fetch it first.
+
+		Remove the worktree for BRANCH and create a new one in its place.
+	EOF
+
+	# Parse the BRANCH_SPEC
+	IFS=':' read -r BASE BRANCH <<<"$BRANCH_SPEC"
+	[[ -n "$BRANCH" ]] || { BRANCH="$BASE" && BASE=""; }
+
+	rm_wt_dir "$BRANCH" || die
+	co_wt_dir "$BRANCH" "$BASE" || die
+	get_wt_path "$BRANCH"
+}
+
+wt.co() {
+	desc "$@" <<-EOF || return 0
+		Check out a branch into a new worktree.
+		args: BRANCH_SPEC DIR?
+
+		BRANCH_SPEC can be in two forms:
+
+		1. BRANCH, a simple branch name, e.g. 'feature/branch'.
+		   In this case, the branch will be checked out into the worktree if
+		   it exists.
+		   If it does not exist, it will be created based on the current branch.
+
+		2. BASE:BRANCH, e.g. main:feature/branch.
+		   In this case, the branch NEW will be created based on the branch BASE.
+		   If BASE is not specified, it defaults to the current branch.
+		   If BASE is remote, an attempt will be made to fetch it first.
 
 		By default this command will create the worktree for BRANCH in the
 		.gitworktrees/BRANCH directory in the root of your repository.
-		If BRANCH does not exist, it will be created based on the current branch.
 	EOF
 
-	ROOT="$(main_wt_root)" || die "Not in a git repository."
-	[[ -n "$DIR" ]] || DIR="$ROOT/.gitworktrees/$BRANCH"
+	# Parse the BRANCH_SPEC
+	IFS=':' read -r BASE BRANCH <<<"$BRANCH_SPEC"
+	[[ -n "$BRANCH" ]] || { BRANCH="$BASE" && BASE=""; }
 
-	mkdir -p "$ROOT/.gitworktrees"
-	echo "*" >"$ROOT/.gitworktrees/.gitignore"
+	co_wt_dir "$BRANCH" "$BASE"
+	get_wt_path "$BRANCH"
+}
 
-	branch_exists "$BRANCH" || git branch "$BRANCH"
+co_wt_dir() {
+	local BRANCH="$1" BASE="$2" DIR
+	create_wt_dir "$BRANCH" || die
 
+	# Handle the simple case of branching from the current branch.
+	[[ -z "$BASE" ]] && {
+		branch_exists "$BRANCH" || git branch "$BRANCH" || die "Unable to create branch '%s'." "$BRANCH"
+		git worktree add "$DIR" "$BRANCH"
+		return $?
+	}
+
+	# Handle branching from a specific branch.
+	branch_exists "$BASE" || remote_branch_ref "$BASE" || die "Base branch '%s' does not exist." "$BASE"
+	branch_exists "$BRANCH" && die "Branch '%s' already exists." "$BRANCH"
+
+	# Update the remote branch ref if possible.
+	remote_branch_ref "$BASE" && {
+		read -r REMOTE_NAME REMOTE_BRANCH <<<"$BASE"
+		log "Fetching branch $REMOTE_BRANCH from remote $REMOTE_NAME."
+		git fetch "$REMOTE_NAME" "$REMOTE_BRANCH" || log "WARN: Unable to fetch remote branch '%s'." "$BASE"
+	}
+
+	git branch "$BRANCH" "$BASE" || die "Unable to create branch '%s' based on '%s'." "$BRANCH" "$BASE"
 	git worktree add "$DIR" "$BRANCH"
 }
 
