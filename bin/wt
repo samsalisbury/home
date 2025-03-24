@@ -12,18 +12,43 @@ usage() { log "$@" && wt.help && exit 2; }
 main() {
 	local CODE=$? && trap - EXIT
 	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^wt\.')"
-	COMMANDS="$(grep -E '^wt\.[^\.]+$' <<<"$FUNCS" | sed -E 's/wt\.//')"
+	COMMANDS="$(command_names)"
+	handle_completion
 	[[ ${#@} != 0 ]] || usage "No arguments passed."
-	local FUNC="wt.$1" && shift
-	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || usage "Function '%s' not defined." "$FUNC"
-	"$FUNC" "$@"
+	run_command "$@"
+}
+handle_completion() {
+	[[ -n "${COMP_LINE:-}" ]] || return 0
+	#log "\nCompletion: COMP_LINE=%s; COMP_CWORD=%s; COMP_WORDS=%s" "$COMP_LINE" "$COMP_CWORD" "${COMP_WORDS[*]}"
+	((COMP_CWORD == 1)) && {
+		command_names
+		exit 0
+	}
+	((COMP_CWORD == 2)) && {
+		COMP_WORDS=($COMP_LINE)
+		prev="${COMP_WORDS[1]}"
+		get_completion "wt.$prev"
+	}
+	exit 0
+}
+funcs() { declare -F | cut -d' ' -f3; }
+funcs_prefixed() { funcs | grep -E "^$1" || true; }
+command_funcs() { funcs_prefixed "wt\."; }
+command_names() { command_funcs | sed -E 's/^wt\.//' || true; }
+get_command() { command_funcs | grep -E "^wt\.$1\$" || true; }
+require_command() { { cmd="$(get_command "$1")" && [[ -n "$cmd" ]] && echo "$cmd"; } || die "Command '%s' not found." "$1"; }
+
+run_command() {
+	cmd="$(require_command "$1")"
+	"$cmd" "${@:2}"
 }
 GET_DESC=false
 GET_HELP=false
+GET_COMPLETION=false
 
 get_desc() (GET_DESC=true "$1")
 get_help() (GET_HELP=true "$1")
+get_completion() (GET_COMPLETION=true "$1")
 
 # desc parses the stdin for a description in the form:
 #
@@ -82,6 +107,14 @@ wt.test() {
 desc() {
 	text="$(cat -)"
 	short="$(head -n1 <<<"$text")"
+
+	$GET_COMPLETION && {
+		compline="$(grep -E '^completions:' <<<"$text")" || exit 0
+		compfunc="$(sed -E 's/completions:[[:space:]]*([^\n]*)/\1/g' <<<"$compline")" || exit 0
+		[[ -n "$compfunc" ]] && { $compfunc 2>/dev/null || true; }
+		exit 0
+	}
+
 	# Getting just the description, return failure now.
 	$GET_DESC && echo "$short" && return 1
 
@@ -179,7 +212,7 @@ wt.new+config() {
 branch_exists() { git show-ref --verify --quiet "refs/heads/$1"; }
 remote_branch_ref() { git show-ref --verify --quiet "refs/remotes/$1"; }
 get_main_wt_root() { git -C "$(git worktree list | head -n1 | cut -d' ' -f1)" rev-parse --show-toplevel; }
-get_repo_name() { dirname "$(get_main_wt_root)"; }
+get_repo_name() { basename "$(get_main_wt_root)"; }
 
 wt.rm() {
 	desc "$@" <<-EOF || return 0
@@ -260,7 +293,7 @@ open_tmux_window() {
 	local DIR="$1"
 	local NAME="$2"
 	echo "Opening in new tmux window..."
-	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
+	tmux new-window -a -c "$DIR" -n "$NAME"\; \
 		send-keys \
 		"clear && " \
 		"git log -n3 && echo && " \
@@ -359,6 +392,7 @@ wt.switch() {
 		Otherwise just print the wt path.
 
 		args: NAME
+		completions: names
 
 		The special name "main" means the main worktree.
 
