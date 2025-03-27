@@ -41,3 +41,11 @@ vim.filetype.add({
     sarif = "json",
   },
 })
+
+vim.filetype.add({
+  filename = {
+    Appfile = "ruby",
+    Fastfile = "ruby",
+    Matchfile = "ruby",
+  },
+})
