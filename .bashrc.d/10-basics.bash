@@ -4,10 +4,12 @@ basics() {
 
 	# Add initial paths.
 	pathadd "/opt/homebrew/bin"
+	pathadd "/opt/homebrew/opt/ruby/bin"
 	pathadd "$HOME/.local/share/bin" # Vendored binaries.
 	pathadd "$HOME/.local/bin"       # Vendored binaries.
 	pathadd "$HOME/bin"              # User binaries.
 	pathadd "$SHIM_PATH"             # Shims for other programs.
+	pathadd "/opt/homebrew/opt/ruby/bin"
 
 	# Mac specific stuff
 	os darwin && {
