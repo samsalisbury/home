@@ -214,15 +214,35 @@ remote_branch_ref() { git show-ref --verify --quiet "refs/remotes/$1"; }
 get_main_wt_root() { git -C "$(git worktree list | head -n1 | cut -d' ' -f1)" rev-parse --show-toplevel; }
 get_repo_name() { basename "$(get_main_wt_root)"; }
 
+wt.current() {
+	desc "$@" <<-EOF || return 0
+		Show the current worktree.
+	EOF
+	get_current_worktree
+}
+
+get_current_worktree() {
+	root="$(get_wt_base_dir)" || die "Not in a git repository."
+	name="${PWD#"$root/"}"
+	wt_exists "$name" || die "Not in a worktree."
+	echo "$name"
+}
+
+wt_exists() { [[ -d "$(get_wt_path "$1")" ]]; }
+
 wt.rm() {
 	desc "$@" <<-EOF || return 0
 		Remove a git worktree.
-		args: NAME
+		args: NAME?
+		completions: names
 
 		Remove the worktree named NAME.
-	EOF
+		Leave NAME empty, or use '.' to remove the current worktree.
 
-	rm_wt_dir "$NAME"
+	EOF
+	{ [[ -z "$NAME" ]] || [[ "$NAME" == "." ]]; } && { NAME="$(get_current_worktree)" || die; }
+
+	rm_wt "$NAME"
 }
 
 create_wt_dir() {
@@ -234,7 +254,7 @@ create_wt_dir() {
 	mkdir -p "$DIR" || die "Unable to create directory '%s'." "$DIR"
 }
 
-rm_wt_dir() {
+rm_wt() {
 	DIR="$(get_wt_path "$1")" || die
 	[[ -d "$DIR" ]] || die "Directory '%s' does not exist." "$DIR"
 	git worktree remove "$DIR"
@@ -270,8 +290,8 @@ wt.replace() {
 	IFS=':' read -r BASE BRANCH <<<"$BRANCH_SPEC"
 	[[ -n "$BRANCH" ]] || { BRANCH="$BASE" && BASE=""; }
 
-	rm_wt_dir "$BRANCH" || die
-	co_wt_dir "$BRANCH" "$BASE" || die
+	rm_wt "$BRANCH" || die
+	new_wt "$BRANCH" "$BASE" || die
 	get_wt_path "$BRANCH"
 }
 
@@ -327,7 +347,7 @@ wt.co() {
 	IFS=':' read -r BASE BRANCH <<<"$BRANCH_SPEC"
 	[[ -n "$BRANCH" ]] || { BRANCH="$BASE" && BASE=""; }
 
-	co_wt_dir "$BRANCH" "$BASE"
+	new_wt "$BRANCH" "$BASE"
 	get_wt_path "$BRANCH"
 }
 
@@ -359,6 +379,11 @@ new_wt() {
 	git worktree add "$DIR" "$BRANCH"
 }
 
+list() {
+	prefix="$(get_main_wt_root)/.gitworktrees/"
+	git worktree list | sed -E "s|$prefix||" | column -t
+}
+
 names() {
 	prefix="$(get_main_wt_root)/.gitworktrees/"
 	echo "main"
@@ -376,7 +401,7 @@ wt.list() {
 	desc "$@" <<-EOF || return 0
 		List all git worktrees.
 	EOF
-	git worktree list
+	list
 }
 
 wt.main() {
