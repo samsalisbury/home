@@ -24,7 +24,7 @@
   "mini.colors": { "branch": "main", "commit": "a946cd32c0e5b9bab9cd27ebd6c23259e7d70a72" },
   "mini.hipatterns": { "branch": "main", "commit": "dd53c18779a2e47a1902180c72bc54a8bb554388" },
   "mini.icons": { "branch": "main", "commit": "397ed3807e96b59709ef3292f0a3e253d5c1dc0a" },
-  "neo-tree.nvim": { "branch": "v2.x", "commit": "80dc74d081823649809f78370fa5b204aa9a853a" },
+  "neo-tree.nvim": { "branch": "main", "commit": "69f798bf9493b84df660ac3c6b2fc03e23956d25" },
   "neotest": { "branch": "master", "commit": "dddbe8fe358b05b2b7e54fe4faab50563171a76d" },
   "neotest-golang": { "branch": "main", "commit": "5dca5702a73d5eef888b7a88153f1efcb21f9b44" },
   "neotest-rspec": { "branch": "main", "commit": "281c0ed0e55d623e8028796e1c4dc27b7e421fd0" },
