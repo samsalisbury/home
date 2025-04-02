@@ -18,10 +18,10 @@ vim.lsp.inlay_hint.enable(false)
 
 vim.g.markdown_folding = 1
 vim.opt.foldlevel = 999
-
 vim.opt.foldmethod = "expr"
-vim.opt.foldexpr = "nvim_treesitter#foldexpr()"
-vim.opt.foldenable = false
+vim.opt.foldmethod = "expr"
+vim.opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.opt.foldenable = true
 
 vim.lsp.set_log_level("warn")
 
