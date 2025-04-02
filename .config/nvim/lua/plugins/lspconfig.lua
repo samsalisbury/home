@@ -14,7 +14,6 @@ return {
         servers = {
           ltex = false,
           ltex_ls = false,
-          sourcekit = true,
         },
         diagnostics = {
           virtual_text = false,

@@ -21,15 +21,55 @@ return {
   --  end,
   --},
 
+  --{
+  --  "neovim/nvim-lspconfig",
+  --  opts = {
+  --    servers = {
+  --      sourcekit = {
+  --        cmd = {
+  --          "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
+  --          "-I /opt/homebrew/Caskroom/tuist/4.44.3/",
+  --          "-I .",
+  --        },
+  --        root_dir = function(filename, _)
+  --          local util = require("lspconfig.util")
+  --          return util.root_pattern("buildServer.json")(filename)
+  --            or util.root_pattern("*.xcodeproj", "*.xcworkspace")(filename)
+  --            or util.find_git_ancestor(filename)
+  --            or util.root_pattern("Package.swift")(filename)
+  --        end,
+
+  --        on_attach = function(client, bufnr)
+  --          local opts = { noremap = true, silent = true }
+  --          opts.buffer = bufnr
+
+  --          opts.desc = "Show line diagnostics"
+  --          vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
+
+  --          opts.desc = "Show documentation for what is under cursor"
+  --          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+  --        end,
+  --      },
+  --    },
+  --  },
+  --},
+
   {
     "neovim/nvim-lspconfig",
+
+    dependencies = {
+      --"hrsh7th/nvim-cmp-lsp",
+    },
     opts = {
       servers = {
         sourcekit = {
+          timeout = 10000,
           cmd = {
-            "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/sourcekit-lsp",
-            "-I /opt/homebrew/Caskroom/tuist/4.44.3/",
-            "-I .",
+            "xcrun",
+            "sourcekit-lsp",
+            --"-I",
+            --"/opt/homebrew/Caskroom/tuist/4.44.3/",
+            --"-I .",
           },
           root_dir = function(filename, _)
             local util = require("lspconfig.util")
@@ -38,6 +78,30 @@ return {
               or util.find_git_ancestor(filename)
               or util.root_pattern("Package.swift")(filename)
           end,
+          capabilities = {
+            textDocument = {
+              diagnostic = {
+                dynamicRegistration = true,
+                relatedDocumentSupport = true,
+              },
+              workspace = {
+                didChangeWatchedFiles = {
+                  dynamicRegistration = true,
+                },
+              },
+            },
+          },
+
+          --on_attach = function(client, bufnr)
+          --  local opts = { noremap = true, silent = true }
+          --  opts.buffer = bufnr
+
+          --  opts.desc = "Show line diagnostics"
+          --  vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
+
+          --  opts.desc = "Show documentation for what is under cursor"
+          --  vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+          --end,
         },
       },
     },
@@ -56,7 +120,7 @@ return {
     "stevearc/conform.nvim",
     opts = {
       formatters_by_ft = {
-        swift = { "swift-format" },
+        swift = { "swiftformat" },
       },
     },
   },
