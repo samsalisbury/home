@@ -27,3 +27,6 @@ go.work.sum
 *.key
 *.keystore
 *.jks
+
+# Debugging files
+**/__debug_bin*
