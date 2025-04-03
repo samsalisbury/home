@@ -128,11 +128,17 @@ set_terminal_palette() {
 
 	tmux source-file "$PALETTE_STATE_TMUX"
 
+	# If Terminal.app is running, set the background color.
+	# This fixes the white border when switching in Terminal.
+	# Note: Ghostty does not have this problem.
 	if command -v osascript >/dev/null 2>&1; then
+
 		osascript <<-EOF
-			tell application "Terminal"
-			  set background color of selected tab of window 1 to $TERMINAL_BG
-			end tell
+			if application "Terminal" is running then
+				tell application "Terminal"
+				  set background color of selected tab of window 1 to $TERMINAL_BG
+				end tell
+			end if
 		EOF
 	fi
 

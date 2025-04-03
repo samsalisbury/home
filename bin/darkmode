@@ -193,9 +193,11 @@ set_terminal_palette() {
 
 	if command -v osascript >/dev/null 2>&1; then
 		osascript <<-EOF
-			tell application "Terminal"
-			  set background color of selected tab of window 1 to $TERMINAL_BG
-			end tell
+			if application "Terminal" is running then
+				tell application "Terminal"
+				  set background color of selected tab of window 1 to $TERMINAL_BG
+				end tell
+			end if
 		EOF
 	fi
 

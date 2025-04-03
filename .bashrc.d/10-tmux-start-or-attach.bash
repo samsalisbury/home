@@ -49,8 +49,10 @@ set_window_title() {
 	local TITLE="$1"
 	has osascript || return 0
 	cat <<-EOF | osascript
-		tell application "Terminal"
-			set custom title of front window to "$TITLE"
-		end
+		if application "Terminal" is running then
+			tell application "Terminal"
+				set custom title of front window to "$TITLE"
+			end
+		end if
 	EOF
 }
