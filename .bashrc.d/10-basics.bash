@@ -9,7 +9,6 @@ basics() {
 	pathadd "$HOME/.local/bin"       # Vendored binaries.
 	pathadd "$HOME/bin"              # User binaries.
 	pathadd "$SHIM_PATH"             # Shims for other programs.
-	pathadd "/opt/homebrew/opt/ruby/bin"
 
 	# Mac specific stuff
 	os darwin && {
