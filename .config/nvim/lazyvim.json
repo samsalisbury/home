@@ -1,9 +1,11 @@
 {
   "extras": [
+    "lazyvim.plugins.extras.editor.outline",
     "lazyvim.plugins.extras.formatting.prettier",
     "lazyvim.plugins.extras.lang.go",
     "lazyvim.plugins.extras.lang.ruby",
     "lazyvim.plugins.extras.test.core",
+    "lazyvim.plugins.extras.ui.edgy",
     "lazyvim.plugins.extras.ui.mini-indentscope",
     "lazyvim.plugins.extras.util.dot",
     "lazyvim.plugins.extras.util.mini-hipatterns",
