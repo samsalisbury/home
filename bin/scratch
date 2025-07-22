@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2059
+log() { printf "$1\n" "${@:2}" 1>&2; }
+die() {
+	log "FATAL: $1" "${@:2}"
+	exit 1
+}
+# Set exit trap if this file was directly invoked rather than sourced.
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+(return 0 2>/dev/null) || {
+	set -Eeuo pipefail
+	trap 'main "$@"' EXIT
+}
+main() {
+	local CODE=$?
+	trap - EXIT
+	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+	[[ ${#@} != 0 ]] || {
+		log "Error: No arguments passed."
+		scratch.help
+		exit 2
+	}
+	local FUNC="scratch.$1"
+	shift
+	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+	"$FUNC" "$@"
+}
+
+scratch.help() {
+	cat <<-EOF
+		scratch - record work in a scratch repo
+
+		Usage:
+		  scratch <command> [options]
+
+		Commands:
+	EOF
+
+	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^scratch\.')"
+	COMMANDS="$(grep -E '^scratch\.[^\.]+$' <<<"$FUNCS" | sed -E 's/scratch\.//')"
+	for C in $COMMANDS; do
+		if DESC_FUNC="$(grep -E '^scratch\.'"$C"'\.desc$' <<<"$FUNCS")"; then
+			DESC="$("$DESC_FUNC")"
+		else
+			DESC="No description provided."
+		fi
+		echo "  $C"$'\t'"$DESC"
+	done | column -t -s $'\t'
+}
+
+scratch.help.desc() {
+	echo "Show this help message."
+}
+
+scratch.new.desc() {
+	echo "Create a new scratch directory."
+}
+
+config_file_path() {
+	# First look for absolute paths.
+	[[ -n "${SCRATCH_CONFIG:-}" ]] && {
+		echo "$SCRATCH_CONFIG"
+		return
+	}
+
+	[[ -n "${XDG_CONFIG_HOME:-}" ]] && {
+		# If XDG_CONFIG_HOME is set, use it.
+		echo "$XDG_CONFIG_HOME/scratch/config.json"
+		return
+	}
+
+	[[ -n "$HOME" ]] && {
+		# If HOME is set, use it.
+		echo "$HOME/.config/scratch/config.json"
+		return
+	}
+
+	# Fallback to system path.
+	[[ -d /etc ]] && {
+		echo "/etc/scratch/config.json"
+		return
+	}
+	die "Unable to determine config file location. Set SCRATCH_CONFIG to an absolute path or ensure XDG_CONFIG_HOME or HOME is set."
+}
+
+write_config() {
+	local key="$1" value="$2"
+	file="$(config_file_path)" || exit 1
+	[[ -f "$file" ]] || {
+		log "Config file not found or empty, creating at $file"
+		mkdir -p "$(dirname "$file")"
+		echo "{}" >"$file"
+	}
+	log "Updating config: ${key} = ${value}"
+	local updated
+
+	json="$(cat "$file")"
+	[[ -n "$json" ]] || json="{}"
+	log "Original: %s" "$json"
+	updated="$(jq --arg k "$key" --arg v "$value" '. + { $k: $v }' <<<"$json")" || return 1
+	echo "$updated" | jq . || {
+		log "Failed to update config: $key = $value"
+		return 1
+	}
+	log "updated file:\n%s" "$updated"
+	echo "$updated" >"$file" || return 1
+}
+
+read_config() {
+	local key="$1"
+	file="$(config_file_path)" || exit 1
+	[[ -f "$file" ]] || {
+		init_config || return 1
+	}
+	VAL="$(jq -r --arg k "$key" '.[$k]' "$file")" || return 1
+	[[ -n "$VAL" ]] || {
+		init_config && read_config "$key" && return 0
+	}
+
+	echo "$VAL"
+}
+
+init_config() {
+	log "Initializing configuration."
+	read -r -p "Root for scratch directories: " root_dir
+	[[ -z "$root_dir" ]] && die "Root directory cannot be empty."
+	mkdir -p "$root_dir" || die "Failed to create root directory: $root_dir"
+	write_config "root_dir" "$root_dir" || die "Failed to write config."
+}
+
+scratch.config() {
+	local file
+	file="$(config_file_path)" || exit 1
+	[[ -f "$file" ]] && {
+		log "Config file found at $file"
+		jq . "$file"
+		return
+	}
+	init_config || die "Failed to initialize config."
+	jq . "$file"
+}
+
+# Functions beginning scratch.<name> are subcommands that can be called
+# By passing the name as the first argument to this script.
+scratch.new() {
+	local name="${1:-}"
+	[[ -z "$name" ]] && name="untitled-$(date +%Y%m%d)"
+	local root_dir
+	root_dir="$(read_config "root_dir")" || die "Failed to read root directory from config."
+	date_dir="$(date +%Y-%m)"
+	dir="$root_dir/$date_dir/$name"
+	[[ -d "$dir" ]] && die "Directory already exists: $dir"
+	mkdir -p "$dir" || die "Failed to create directory: $dir"
+	log "Created new scratch directory"
+	echo "$dir"
+
+	# If in tmux, open a new pane in the new directory.
+	[[ -n "$TMUX" ]] && {
+		tmux new-window -a -c "$dir" -n "$(basename "$dir")"
+	}
+}
+
+# Other functions are only exposed internally.
+hello-world() {
+	echo "hello" "$@"
+}
+
