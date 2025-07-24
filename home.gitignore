@@ -22,6 +22,7 @@ auth.*
 # later. (This is needed because once a dir is excluded it can't be re-included.)
 !/.config
 /.config/containers
+/.config/gcloud
 
 # Ignore logs.
 **/logs/*.txt
