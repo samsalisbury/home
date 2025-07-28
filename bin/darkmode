@@ -182,7 +182,7 @@ set_terminal_palette() {
 		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
 
 		set -g status-style 'fg=$STATUS_FG,bold bg=$STATUS_BG'
-		setw -g window-status-current-style fg=$STATUS_SELECTED
+		set-window-option -g window-status-current-style 'fg=$STATUS_SELECTED'
 
 		set  window-style '$WINDOW_STYLE'
 		set  pane-border-style 'bg=$BG fg=$BORDER'
@@ -245,8 +245,8 @@ light() {
 	BORDER=green
 	HIGHLIGHT=magenta
 	STATUS_BG=green
-	STATUS_FG=white
-	STATUS_SELECTED="brightwhite"
+	STATUS_FG="#FFFFFF"
+	STATUS_SELECTED="#FFFFFF"
 	BACKGROUND=light
 	COLORSCHEME=github_light
 	#export LUALINE_THEME="ayu_light"
