@@ -140,6 +140,9 @@ scratch.config() {
 	init_config || die "Failed to initialize config."
 	jq . "$file"
 }
+scratch.config.desc() {
+	echo "View or initialize configuration."
+}
 
 # Functions beginning scratch.<name> are subcommands that can be called
 # By passing the name as the first argument to this script.
@@ -160,9 +163,19 @@ scratch.new() {
 		tmux new-window -a -c "$dir" -n "$(basename "$dir")"
 	}
 }
+# The list command lists existing scratch directories.
+scratch.list() {
+	local root
+	root="$(read_config "root_dir")" || die "Failed to read root directory from config."
+	[[ -d "$root" ]] || die "Root directory does not exist: $root"
+	find "$root" -type d -mindepth 2 -maxdepth 2
+}
+
+scratch.list.desc() {
+	echo "List existing scratch directories."
+}
 
 # Other functions are only exposed internally.
 hello-world() {
 	echo "hello" "$@"
 }
-
