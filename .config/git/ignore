@@ -30,3 +30,7 @@ go.work.sum
 
 # Debugging files
 **/__debug_bin*
+
+**/.claude/settings.local.json
+
+**/CLAUDE.local.md
