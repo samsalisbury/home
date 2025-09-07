@@ -1,6 +1,5 @@
 local cmd = "bash -c 'darkmode get'"
-local raw = vim.fn.system(cmd)
-local C = raw:gsub("%s+", "")
+local C = vim.system({ "bash", "-c", "darkmode get" }):wait().stdout:gsub("%s+", "")
 if C == "Light" then
   ColorScheme = "github_light"
   LualineColorScheme = "ayu_light"
