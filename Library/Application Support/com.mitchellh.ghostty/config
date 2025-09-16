@@ -9,14 +9,15 @@
 #
 # Additionally, each config option is also explained in detail
 # on Ghostty's website, at https://ghostty.org/docs/config.
-shell-integration = none
+shell-integration = bash
 adjust-cursor-thickness = 100%
 adjust-cursor-height = 10%
 cursor-style-blink = true
-#window-decoration = none
+window-decoration = auto
 window-padding-balance = true
 window-padding-color = extend
 window-save-state = never
+macos-titlebar-style = hidden
 
 # Config syntax crash course
 # ==========================
@@ -44,4 +45,4 @@ window-save-state = never
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
-theme = dark:catppuccin-frappe,light:catppuccin-latte
+#theme = dark:GitHub Dark Colorblind,light:GitHub Light Colorblind
