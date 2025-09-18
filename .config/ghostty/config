@@ -8,17 +8,26 @@
 # all available config options and their default values.
 #
 # Additionally, each config option is also explained in detail
-# on Ghostty's website, at https://ghostty.org/docs/config.
+## on Ghostty's website, at https://ghostty.org/docs/config.
 shell-integration = bash
+shell-integration-features = cursor
 adjust-cursor-thickness = 100%
 adjust-cursor-height = 10%
+cursor-color = cell-foreground 
 cursor-style-blink = true
+cursor-style = bar
 window-decoration = auto
 window-padding-balance = true
 window-padding-color = extend
 window-save-state = never
-macos-titlebar-style = hidden
 
+# background-opacity not compatible with current colours
+#background-opacity = 0.8
+
+macos-titlebar-style = native
+
+quit-after-last-window-closed = true
+#
 # Config syntax crash course
 # ==========================
 # # The config file consists of simple key-value pairs,
@@ -45,4 +54,4 @@ macos-titlebar-style = hidden
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
-#theme = dark:GitHub Dark Colorblind,light:GitHub Light Colorblind
+theme = dark: Terminal Basic Dark, light: Terminal Basic
