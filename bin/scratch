@@ -163,6 +163,45 @@ scratch.new() {
 		tmux new-window -a -c "$dir" -n "$(basename "$dir")"
 	}
 }
+
+# scratch.open opens a scratch directory (in a new tmux pane if in tmux).
+# It accepts a name argument to open a specific scratch directory.
+# The name only has to match a unique substring within all the scratch paths.
+scratch.open() {
+	DIR="$(find_scratch_dir "$1")" || die "Failed to find scratch directory."
+	[[ -d "$DIR" ]] || die "Scratch directory does not exist: $DIR"
+	echo "$DIR"
+	[[ -n "$TMUX" ]] && {
+		tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"
+	}
+}
+
+find_scratch_dir() {
+	local name="${1:-}"
+	local root
+	root="$(read_config "root_dir")" || die "Failed to read root directory from config."
+	[[ -d "$root" ]] || die "Root directory does not exist: $root"
+	local matches
+	matches=()
+	while IFS= read -r -d '' dir; do
+		if [[ -z "$name" || "$dir" == *"$name"* ]]; then
+			matches+=("$dir")
+		fi
+	done < <(find "$root" -type d -mindepth 2 -maxdepth 2 -print0)
+
+	if [[ ${#matches[@]} -eq 0 ]]; then
+		die "No scratch directories found matching: $name"
+	elif [[ ${#matches[@]} -gt 1 ]]; then
+		log "Multiple scratch directories found matching: $name"
+		for m in "${matches[@]}"; do
+			log "  %s" "$m"
+		done
+		die "Please specify a more specific name."
+	else
+		echo "${matches[0]}"
+	fi
+}
+
 # The list command lists existing scratch directories.
 scratch.list() {
 	local root
