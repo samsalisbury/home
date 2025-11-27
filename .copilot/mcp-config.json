@@ -26,7 +26,7 @@
       ],
       "args": [
         "run",
-        "github.com/leonardcser/nvim-lsp-mcp/cmd/server@latest"
+        "github.com/leonardcser/nvim-lsp-mcp/cmd/server@7c8922aaf0feb3e9ffa1748f98280ac954df9ee0"
       ]
     }
   }
