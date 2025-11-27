@@ -1,0 +1,33 @@
+{
+  "mcpServers": {
+    "gopls": {
+      "tools": [
+        "*"
+      ],
+      "type": "local",
+      "command": "gopls",
+      "args": [
+        "mcp"
+      ]
+    },
+    "godoc-mcp": {
+      "tools": [
+        "*"
+      ],
+      "type": "local",
+      "command": "godoc-mcp",
+      "args": []
+    },
+    "nvim-lsp-mcp": {
+      "type": "local",
+      "command": "go",
+      "tools": [
+        "*"
+      ],
+      "args": [
+        "run",
+        "github.com/leonardcser/nvim-lsp-mcp/cmd/server@latest"
+      ]
+    }
+  }
+}
