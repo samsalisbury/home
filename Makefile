@@ -38,7 +38,9 @@ brew/upgrade:
 	$(FIX_PARALLEL_MOREUTILS)
 
 brew/upgrade-neovim-head:
-	brew reinstall neovim
+	brew unlink neovim
+	brew install neovim --HEAD
+	brew link neovim --HEAD
 
 brew/install:
 	brew unlink moreutils
