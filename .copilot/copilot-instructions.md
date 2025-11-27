@@ -22,5 +22,5 @@ unless the test cases are clearly incorrect.
 ## If You Are Asked to Do Something Impossible, Tell Me
 
 Don't try to implement something you are asked for if it seems
-impossible, or exxtremely complex. Instead, explain to me why it
+impossible, or extremely complex. Instead, explain to me why it
 is impossible or complex, and suggest alternatives.
