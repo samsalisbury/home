@@ -45,3 +45,11 @@ basics() {
 	shopt -s cmdhist
 	#export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 }
+
+use_local_history() {
+	local HIST_BASE="$HOME/.local/state/bash/sessions"
+	local HIST_NAME="${PWD////%}"
+	[[ -d "$HIST_BASE" ]] || mkdir -p "$HIST_BASE"
+	local HIST_FILE="$HIST_BASE/$HIST_NAME.bash_history"
+	export HISTFILE="$HIST_FILE"
+}
