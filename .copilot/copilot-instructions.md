@@ -14,6 +14,14 @@ You don't have access to credentials, so if a task requires
 credentials to complete, you must ask the user to run the
 necessary commands themselves and provide you the output.
 
+## If you need to test something, write a test
+
+Never write temporary code that you intend to delete later, just
+to test something.
+
+If something needs to be tested, write a proper test case for
+it.
+
 ## Never Remove Functionality to Make Tests Pass
 
 If you are asked to fix tests, you must fix the underlying code,
