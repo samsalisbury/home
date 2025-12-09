@@ -5,16 +5,37 @@ ColorschemeDark = "github_dark_colorblind"
 
 System_is_dark = vim.fn.system("defaults read -g AppleInterfaceStyle 2>/dev/null"):match("Dark") ~= nil
 if System_is_dark then
-  Colorscheme = ColorschemeDark
   vim.o.background = "dark"
+  IndentGuideColour = "#888888"
+  IndentScopeColour = "#9999FF"
+  Colorscheme = ColorschemeDark
 else
-  Colorscheme = ColorschemeLight
   vim.o.background = "light"
+  IndentGuideColour = "#DDDDDD"
+  IndentScopeColour = "#9999FF"
+  Colorscheme = ColorschemeLight
 end
 
 return {
-  -- Install GitHub Themes
-  { "projekt0n/github-nvim-theme" },
+  {
+    "projekt0n/github-nvim-theme",
+    name = "github-theme",
+    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    priority = 1000, -- make sure to load this before all the other start plugins
+    config = function()
+      require("github-theme").setup({
+        groups = {
+          all = {
+            SnacksIndent = { fg = IndentGuideColour },
+            SnacksIndentScope = { fg = IndentScopeColour },
+            MiniIndentscopeSymbol = { fg = IndentGuideColour },
+          },
+        },
+      })
+
+      vim.cmd("colorscheme github_dark")
+    end,
+  },
 
   {
     "LazyVim/LazyVim",
