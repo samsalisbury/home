@@ -6,3 +6,29 @@
 --
 -- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
+
+---- Detect OS Theme (Dark/Light)
+---- Note: wrapped in pcall to avoid errors on non-mac systems
+--local is_dark = true
+--local handle = io.popen("defaults read -g AppleInterfaceStyle 2>/dev/null")
+--if handle then
+--  local result = handle:read("*a")
+--  handle:close()
+--  is_dark = result:match("Dark") ~= nil
+--end
+--
+---- Set the color based on the detection
+--local indent_color = is_dark and "#AAAAAA" or "#EEEEEE"
+--
+---- Register the Autocommand
+--vim.api.nvim_create_autocmd("ColorScheme", {
+--  pattern = "*",
+--  callback = function()
+--    -- Use the variables you defined earlier for detection
+--    local indent_color = is_dark and "#AAAAAA" or "#EEEEEE"
+--
+--    -- Override Snacks groups
+--    vim.api.nvim_set_hl(0, "SnacksIndent", { fg = indent_color })
+--    vim.api.nvim_set_hl(0, "SnacksIndentScope", { fg = indent_color })
+--  end,
+--})

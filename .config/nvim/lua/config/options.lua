@@ -4,3 +4,9 @@
 
 -- Disable relative line numbers.
 vim.opt.relativenumber = false
+
+-- Set tab width to 4 spaces.
+vim.opt.tabstop = 4
+
+-- Disable mouse support.
+vim.opt.mouse = ""
