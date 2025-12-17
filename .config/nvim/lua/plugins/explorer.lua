@@ -4,6 +4,7 @@ return {
     picker = {
       sources = {
         explorer = {
+          hidden = true,
           win = {
             list = {
               keys = {
