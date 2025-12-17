@@ -9,4 +9,4 @@ vim.opt.relativenumber = false
 vim.opt.tabstop = 4
 
 -- Disable mouse support.
-vim.opt.mouse = ""
+--vim.opt.mouse = ""
