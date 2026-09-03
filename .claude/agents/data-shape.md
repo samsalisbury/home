@@ -2,8 +2,8 @@
 name: data-shape
 description: >
   Analyses structured data files on disk (JSON, JSONL, YAML,
-  CSV, TOML, XML) and reports their schema. Use when you need
-  the shape of data without pulling the raw payload into
+  CSV, TOML, XML) and reports their schema. Use proactively
+  before reading any data file large enough to crowd the
   context.
 tools: Bash, Read, Grep, Glob
 disallowedTools: >
