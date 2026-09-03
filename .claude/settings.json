@@ -131,6 +131,7 @@
       }
     ]
   },
+  "autoMemoryEnabled": false,
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
   "theme": "dark-daltonized",
