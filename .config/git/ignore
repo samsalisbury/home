@@ -34,3 +34,8 @@ go.work.sum
 **/.claude/settings.local.json
 
 **/CLAUDE.local.md
+
+# Auto-generated agent memory — never commit, in case a future
+# default turns subagent memory back on.
+**/.claude/agent-memory/
+**/.claude/agent-memory-local/
