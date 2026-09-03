@@ -1,0 +1,13 @@
+{
+  "env": {
+    "DISABLE_AUTOUPDATER": "1"
+  },
+  "alwaysThinkingEnabled": true,
+  "tui": "fullscreen",
+  "theme": "light-daltonized",
+  "editorMode": "vim",
+  "autoApprove": [
+    "mcp__XcodeBuildMCP__*"
+  ],
+  "agentPushNotifEnabled": true
+}
