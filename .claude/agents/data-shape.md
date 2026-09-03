@@ -6,7 +6,7 @@ description: >
   the shape of data without pulling the raw payload into
   context.
 tools: Bash, Read, Grep, Glob
-disallowedTools:
+disallowedTools: >
   Edit, Write, NotebookEdit, WebFetch, WebSearch, Agent, mcp__*
 model: sonnet
 effort: medium
