@@ -118,6 +118,19 @@
       ]
     }
   },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/format-markdown.sh"
+          }
+        ]
+      }
+    ]
+  },
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
   "theme": "dark-daltonized",
