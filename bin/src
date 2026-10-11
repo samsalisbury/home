@@ -2,14 +2,18 @@
 
 set -Eeuo pipefail
 
-DEFAULT_HOST=github.com
-DEFAULT_ORG=hashicorp
+[[ -s "$HOME/.config/src/src.conf.local" ]] && source "$HOME/.config/src/src.conf.local"
+: "${DEFAULT_HOST:=github.com}"
+: "${DEFAULT_ORG:=hashicorp}"
 
 [ -n "${SRC_BASEDIR:-}" ] || SRC_BASEDIR="$HOME/src"
 
 log() { echo "$@" 1>&2; }
 debug() { [ "${DEBUG:-}" != "YES" ] || log "[DEBUG] $*"; }
-die() { log "$@"; exit 1; }
+die() {
+  log "$@"
+  exit 1
+}
 # terminal returns true if we're attached to a terminal.
 is_terminal() { [[ -t 1 ]]; }
 is_tmux() { [[ -n "${TMUX:-}" ]]; }
@@ -17,66 +21,69 @@ is_tmux() { [[ -n "${TMUX:-}" ]]; }
 BIN="$(basename "$0")"
 
 open_tmux_window() {
-	# TODO: See if there's already a tmux window open for this repo, if so switch
-	# to that window rather than opening a new one.
-	local REPO="$1"
-	local DIR="$2"
-	echo "Opening in new tmux window..."
-	tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
-		send-keys \
-			"clear && " \
-			"git log -n3 && echo && " \
-			"git status && echo && " \
-			"git -c color.branch=always branch | sort | tac | head -n10" \
-			Enter
+  # TODO: See if there's already a tmux window open for this repo, if so switch
+  # to that window rather than opening a new one.
+  local REPO="$1"
+  local DIR="$2"
+  echo "Opening in new tmux window..."
+  tmux new-window -a -c "$DIR" -n "$(basename "$DIR")"\; \
+    send-keys \
+    "clear && " \
+    "git log -n3 && echo && " \
+    "git status && echo && " \
+    "git -c color.branch=always branch | sort | tac | head -n10" \
+    Enter
 }
 
 if is_terminal && is_tmux; then
-	SHOULD_OPEN_TMUX_WINDOW=true
+  SHOULD_OPEN_TMUX_WINDOW=true
 else
-	SHOULD_OPEN_TMUX_WINDOW=false
+  SHOULD_OPEN_TMUX_WINDOW=false
 fi
 
 NEW_REPO=false
 REPO_EXPRESSION=""
 
-while getopts ":tnd" OPT; do
-	case $OPT in
-		t)
-			SHOULD_OPEN_TMUX_WINDOW=true
-			;;
-		T)
-			SHOULD_OPEN_TMUX_WINDOW=false
-			;;
-		n)
-			NEW_REPO=true
-			;;
-		d)
-			DEBUG=YES
-			;;
-	esac
+while getopts ":tTnd" OPT; do
+  case $OPT in
+  t)
+    SHOULD_OPEN_TMUX_WINDOW=true
+    ;;
+  T)
+    SHOULD_OPEN_TMUX_WINDOW=false
+    ;;
+  n)
+    NEW_REPO=true
+    ;;
+  d)
+    DEBUG=YES
+    ;;
+  *)
+    die "usage: $BIN [-d] [-t] [-n] [[github.com/]<owner>/]<repo>"
+    ;;
+  esac
 done
 
-shift $(( OPTIND - 1 ))
+shift $((OPTIND - 1))
 
 REPO_EXPRESSION="$1"
 
 [[ -z "$REPO_EXPRESSION" ]] && {
-	debug "REPO_EXPRESSION: $REPO_EXPRESSION"
-	die "usage: $BIN [-d] [-t] [-n] [github.com/[<user/org>/]]<repo>"
+  debug "REPO_EXPRESSION: $REPO_EXPRESSION"
+  die "usage: $BIN [-d] [-t] [-n] [github.com/[<user/org>/]]<repo>"
 }
 
 if ! HOST_ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/[^/]+/?$')"; then
-	if ! ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/?$')"; then	
-		if ! REPO="$(echo "$1" | grep -Eo '^[^/]+/?$')"; then
-			echo "Unable to parse repo path '$REPO_EXPRESSION'"
-			exit 1
-		else
-			HOST_ORG_REPO="$DEFAULT_HOST/$DEFAULT_ORG/$REPO"
-		fi
-	else
-		HOST_ORG_REPO="$DEFAULT_HOST/$ORG_REPO"
-	fi
+  if ! ORG_REPO="$(echo "$1" | grep -Eo '^[^/]+/[^/]+/?$')"; then
+    if ! REPO="$(echo "$1" | grep -Eo '^[^/]+/?$')"; then
+      echo "Unable to parse repo path '$REPO_EXPRESSION'"
+      exit 1
+    else
+      HOST_ORG_REPO="$DEFAULT_HOST/$DEFAULT_ORG/$REPO"
+    fi
+  else
+    HOST_ORG_REPO="$DEFAULT_HOST/$ORG_REPO"
+  fi
 fi
 
 [[ "$HOST_ORG_REPO" =~ github.com/.+/.+ ]] || {
@@ -84,12 +91,12 @@ fi
 }
 
 exit_trap() {
-	trap - EXIT
-	CODE="$?"
-	[[ $CODE = 0 ]] || exit "$CODE"
-	if $SHOULD_OPEN_TMUX_WINDOW; then
-		open_tmux_window "$REPO" "$DIR"
-	fi
+  trap - EXIT
+  CODE="$?"
+  [[ $CODE = 0 ]] || exit "$CODE"
+  if $SHOULD_OPEN_TMUX_WINDOW; then
+    open_tmux_window "$REPO" "$DIR"
+  fi
 }
 
 trap exit_trap EXIT
@@ -103,32 +110,32 @@ DIR="$SRC_BASEDIR/$REPO"
 debug "Looking in: $DIR"
 
 [ ! -d "$DIR" ] || {
-	debug "$DIR exits, entering."
-	cd "$DIR"
-	[ -d .git ] || die "[ERR] $DIR exists but is not a git repo."
-	log "Already cloned."
-	echo "$DIR"
-	exit 0
+  debug "$DIR exits, entering."
+  cd "$DIR"
+  [ -d .git ] || die "[ERR] $DIR exists but is not a git repo."
+  log "Already cloned."
+  echo "$DIR"
+  exit 0
 }
 
 if $NEW_REPO; then
-	OUTPUT="$(gh auth status 2>&1)" || die "Need GitHub credentials: $OUTPUT"
-	debug "Creating new repo."
-	mkdir -p "$DIR"
-	cd "$DIR" || die "Unable to cd to $DIR"
-	git init
-	#git remote add origin "https://$HOST_ORG_REPO"
-	echo "# $REPO" > README.md
-	git add README.md
-	git commit -m "initial commit"
-	BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-	REMOTE="origin"
-	gh repo create "$ORG_REPO" --private --source=. --remote="$REMOTE"
-	git push -u "$REMOTE" "$BRANCH"
-	URL="$(gh repo view --json url | jq -r .url)"
-	log "New repo created at $URL"
-	sleep 1
-	exit 0
+  OUTPUT="$(gh auth status 2>&1)" || die "Need GitHub credentials: $OUTPUT"
+  debug "Creating new repo."
+  mkdir -p "$DIR"
+  cd "$DIR" || die "Unable to cd to $DIR"
+  git init
+  #git remote add origin "https://$HOST_ORG_REPO"
+  echo "# $REPO" >README.md
+  git add README.md
+  git commit -m "initial commit"
+  BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+  REMOTE="origin"
+  gh repo create "$ORG_REPO" --private --source=. --remote="$REMOTE"
+  git push -u "$REMOTE" "$BRANCH"
+  URL="$(gh repo view --json url | jq -r .url)"
+  log "New repo created at $URL"
+  sleep 1
+  exit 0
 fi
 
 debug "$DIR does not exist, creating base dir."
@@ -144,6 +151,5 @@ debug "Cloning."
 git clone "$GIT_URL" "$DIR" 2>&1 | sed 's/^/[ GIT ] /g' 1>&2
 
 log "Cloned $HOST_ORG_REPO into $DIR"
-
 
 echo "$DIR"
