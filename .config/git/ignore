@@ -39,3 +39,5 @@ go.work.sum
 # default turns subagent memory back on.
 **/.claude/agent-memory/
 **/.claude/agent-memory-local/
+
+**/.claude/.cc-writes/
