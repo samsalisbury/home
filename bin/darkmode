@@ -2,21 +2,21 @@
 
 # shellcheck disable=SC2059
 log() {
-	local F="$1"
-	shift
-	printf "$F\n" "$@" 1>&2
+  local F="$1"
+  shift
+  printf "$F\n" "$@" 1>&2
 }
 die() {
-	local F="FATAL: $1"
-	shift
-	log "$F" "$@"
-	exit 1
+  local F="FATAL: $1"
+  shift
+  log "$F" "$@"
+  exit 1
 }
 err() {
-	local F="ERROR: $1"
-	shift
-	log "$F" "$@"
-	echo 1
+  local F="ERROR: $1"
+  shift
+  log "$F" "$@"
+  echo 1
 }
 
 PALETTE_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/darkmode"
@@ -27,27 +27,27 @@ mkdir -p "$PALETTE_STATE_DIR"
 # Set error handling and exit trap if this file was directly invoked rather than sourced.
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
 (return 0 2>/dev/null) || {
-	set -Eeuo pipefail
-	trap 'main "$@"' EXIT
+  set -Eeuo pipefail
+  trap 'main "$@"' EXIT
 }
 main() {
-	local CODE=$?
+  local CODE=$?
 
-	trap - EXIT
-	[[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
-	[[ ${#@} != 0 ]] || {
-		log "Error: No arguments passed."
-		darkmode.help
-		exit 2
-	}
-	local FUNC="darkmode.$1"
-	shift
-	declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
-	"$FUNC" "$@"
+  trap - EXIT
+  [[ $CODE == 0 ]] || die "Script exited with code $CODE before main func could run."
+  [[ ${#@} != 0 ]] || {
+    log "Error: No arguments passed."
+    darkmode.help
+    exit 2
+  }
+  local FUNC="darkmode.$1"
+  shift
+  declare -F | cut -d' ' -f3 | grep -qE "^$FUNC\$" || die "Function '%s' not defined." "$FUNC"
+  "$FUNC" "$@"
 }
 
 darkmode.help() {
-	cat <<-EOF
+  cat <<-EOF
 		darkmode - A bash script template.
 
 		Usage:
@@ -56,20 +56,20 @@ darkmode.help() {
 		Commands:
 	EOF
 
-	FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^x\.')"
-	COMMANDS="$(grep -E '^x\.[^\.]+$' <<<"$FUNCS" | sed -E 's/x\.//')"
-	for C in $COMMANDS; do
-		if DESC_FUNC="$(grep -E '^x\.'"$C"'\.desc$' <<<"$FUNCS")"; then
-			DESC="$("$DESC_FUNC")"
-		else
-			DESC="No description provided."
-		fi
-		echo "  $C"$'\t'"$DESC"
-	done | column -t -s $'\t'
+  FUNCS="$(declare -F | cut -d' ' -f3 | grep -E '^x\.')"
+  COMMANDS="$(grep -E '^x\.[^\.]+$' <<<"$FUNCS" | sed -E 's/x\.//')"
+  for C in $COMMANDS; do
+    if DESC_FUNC="$(grep -E '^x\.'"$C"'\.desc$' <<<"$FUNCS")"; then
+      DESC="$("$DESC_FUNC")"
+    else
+      DESC="No description provided."
+    fi
+    echo "  $C"$'\t'"$DESC"
+  done | column -t -s $'\t'
 }
 
 darkmode.help.desc() {
-	echo "Show this help message."
+  echo "Show this help message."
 }
 
 darkmode.get() { get-system-darkmode; }
@@ -82,43 +82,43 @@ darkmode.off() { light; }
 # system-palette tells tmux to copy the system's color palette if possible,
 # or to continue to respect the currently manually set palette otherwise.
 system-palette() {
-	local PALETTE
-	# AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
-	# it returns "Dark". We return "Light" when it should be light.
-	CMD=(defaults read -g AppleInterfaceStyle)
-	PALETTE="$("${CMD[@]}" 2>/dev/null || echo Light)"
-	[ "$PALETTE" = "Dark" ] && dark
-	[ "$PALETTE" = "Light" ] && light
+  local PALETTE
+  # AppleInterfaceStyle is nil (thus errors) when in light mode. Otherwise
+  # it returns "Dark". We return "Light" when it should be light.
+  CMD=(defaults read -g AppleInterfaceStyle)
+  PALETTE="$("${CMD[@]}" 2>/dev/null || echo Light)"
+  [ "$PALETTE" = "Dark" ] && dark
+  [ "$PALETTE" = "Light" ] && light
 }
 
 match-system-darkmode() (
-	local system_palette terminal_palette
-	system_palette="$(get-system-darkmode)"
-	terminal_palette="$(get-terminal-darkmode)"
-	[[ "$terminal_palette" = "$system_palette" ]] && return
-	[[ "$system_palette" = "Dark" ]] && dark
-	[[ "$system_palette" = "Light" ]] && light
+  local system_palette terminal_palette
+  system_palette="$(get-system-darkmode)"
+  terminal_palette="$(get-terminal-darkmode)"
+  [[ "$terminal_palette" = "$system_palette" ]] && return
+  [[ "$system_palette" = "Dark" ]] && dark
+  [[ "$system_palette" = "Light" ]] && light
 )
 
 get-terminal-darkmode() {
-	tmux-getenv DARKMODE
+  tmux-getenv DARKMODE
 }
 
 get-system-darkmode() {
-	local PALETTE
-	CMD=(defaults read -g AppleInterfaceStyle)
-	"${CMD[@]}" 2>/dev/null || echo Light
+  local PALETTE
+  CMD=(defaults read -g AppleInterfaceStyle)
+  "${CMD[@]}" 2>/dev/null || echo Light
 }
 
 set_macos_palette() {
-	command -v osascript >/dev/null 2>&1 || {
-		echo "Skipping macos palette, osascript not found." 1>&SC2086
-		return 0
-	}
-	local MODE="$1" MAC_MODE
-	[ "$MODE" = "dark" ] && MAC_MODE="true"
-	[ "$MODE" = "light" ] && MAC_MODE="false"
-	osascript - <<-EOF
+  command -v osascript >/dev/null 2>&1 || {
+    echo "Skipping macos palette, osascript not found." 1>&SC2086
+    return 0
+  }
+  local MODE="$1" MAC_MODE
+  [ "$MODE" = "dark" ] && MAC_MODE="true"
+  [ "$MODE" = "light" ] && MAC_MODE="false"
+  osascript - <<-EOF
 		tell application "System Events"
 			tell appearance preferences
 				set dark mode to $MAC_MODE
@@ -132,156 +132,156 @@ set_macos_palette() {
 # So the only way to reliably set their colours is to create an
 # executable shim in the PATH.
 set_command_colors() {
-	create_env_shim ls "LSCOLORS='$LSCOLORS'"
-	create_env_shim jq "JQ_COLORS='$JQ_COLORS'"
+  create_env_shim ls "LSCOLORS='$LSCOLORS'"
+  create_env_shim jq "JQ_COLORS='$JQ_COLORS'"
 }
 
 # create_env_shim ceates a shim executable that sets
 # environment variables before calling the original command.
 create_env_shim() {
-	PROG="$1"
-	shift
-	[[ -z "$SHIM_PATH" ]] && {
-		echo "SHIM_PATH not set; can't make colour shims." 1>&2
-		return 1
-	}
-	mkdir -p "$SHIM_PATH"
-	cat <<-EOF >"$SHIM_PATH/$PROG"
+  PROG="$1"
+  shift
+  [[ -z "$SHIM_PATH" ]] && {
+    echo "SHIM_PATH not set; can't make colour shims." 1>&2
+    return 1
+  }
+  mkdir -p "$SHIM_PATH"
+  cat <<-EOF >"$SHIM_PATH/$PROG"
 		#!/bin/bash
 		PATH="$(sed -E "s|$SHIM_PATH:?||g" <<<"$PATH")"
 		$@ $PROG "\$@"
 	EOF
-	chmod +x "$SHIM_PATH/$PROG"
+  chmod +x "$SHIM_PATH/$PROG"
 }
 
 set_terminal_palette() {
-	echo "$MODE" >"$PALETTE_STATE"
+  echo "$MODE" >"$PALETTE_STATE"
 
-	set_command_colors
+  set_command_colors
 
-	# Tell all nvims to update colorscheme.
-	nvim-remote tell-all "<ESC>:set background=$BACKGROUND<CR>:colorscheme $COLORSCHEME<CR>"
-	# Tell all nvims to update lualine colorscheme.
-	#LUA="require('lualine').setup( { options = vim.tbl_deep_extend('force', require('lualine').get_config(), {theme='$LUALINE_THEME'}) } )"
-	#nvim-remote tell-all "<ESC>:lua $LUA<CR>"
+  # Tell all nvims to update colorscheme.
+  nvim-remote tell-all "<ESC>:set background=$BACKGROUND<CR>:colorscheme $NVIM_COLORSCHEME<CR>"
+  # Tell all nvims to update lualine colorscheme.
+  #LUA="require('lualine').setup( { options = vim.tbl_deep_extend('force', require('lualine').get_config(), {theme='$LUALINE_THEME'}) } )"
+  #nvim-remote tell-all "<ESC>:lua $LUA<CR>"
 
-	#
-	#
-	#
-	# shellcheck disable=SC2086
-	#for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
+  #
+  #
+  #
+  # shellcheck disable=SC2086
+  #for P in $(pgrep nvim); do kill -SIGUSR1 $P; done
 
-	local WINDOW_STYLE="bg=$BG fg=$FG"
+  local WINDOW_STYLE="bg=$BG fg=$FG"
 
-	# Write a config snippet for .tmux.conf to source. This avoids having to run a
-	# shell command to set the color _after_ the pane has loaded, thus avoiding the
-	# white flash.
-	cat <<-EOF >"$PALETTE_STATE_TMUX"
+  # Write a config snippet for .tmux.conf to source. This avoids having to run a
+  # shell command to set the color _after_ the pane has loaded, thus avoiding the
+  # white flash.
+  cat <<-EOF >"$PALETTE_STATE_TMUX"
 		set -g window-style '$WINDOW_STYLE'
 		set -g pane-border-style 'bg=$BG fg=$BORDER'
 		set -g pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
 
 		set -g status-style 'fg=$STATUS_FG,bold bg=$STATUS_BG'
-		set-window-option -g window-status-current-style 'fg=$STATUS_SELECTED'
+		set -g window-status-current-style '$STATUS_SELECTED'
 
 		set  window-style '$WINDOW_STYLE'
 		set  pane-border-style 'bg=$BG fg=$BORDER'
 		set  pane-active-border-style 'bg=$BG fg=$HIGHLIGHT'
 	EOF
 
-	[[ -f "$PALETTE_STATE" ]] && tmux source-file "$PALETTE_STATE_TMUX"
+  [[ -f "$PALETTE_STATE" ]] && tmux source-file "$PALETTE_STATE_TMUX"
 
-	if command -v osascript >/dev/null 2>&1; then
-		osascript <<-EOF
-			if application "Terminal" is running then
-				tell application "Terminal"
-				  set background color of selected tab of window 1 to $TERMINAL_BG
-				end tell
-			end if
-		EOF
-	fi
+  #if command -v osascript >/dev/null 2>&1; then
+  #  osascript <<-EOF
+  #  		if application "Terminal" is running then
+  #  			tell application "Terminal"
+  #  			  set background color of selected tab of window 1 to $TERMINAL_BG
+  #  			end tell
+  #  		end if
+  #  	EOF
+  #fi
 
-	# Set the style for each open window first.
-	ORIG_WINDOW="$(tmux display-message -p '#I')"
-	if [[ -f "$PALETTE_STATE_TMUX" ]]; then
-		for W in $(tmux list-windows -a -F '#{window_id}'); do
-			tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
-		done
-	fi
-	tmux select-window -t "$ORIG_WINDOW"
+  # Set the style for each open window first.
+  ORIG_WINDOW="$(tmux display-message -p '#I')"
+  if [[ -f "$PALETTE_STATE_TMUX" ]]; then
+    for W in $(tmux list-windows -a -F '#{window_id}'); do
+      tmux select-window -t "$W" && tmux source-file "$PALETTE_STATE_TMUX"
+    done
+  fi
+  tmux select-window -t "$ORIG_WINDOW"
 
-	ORIG_PANE="$TMUX_PANE"
-	ORIG_ZOOMED=false
-	if tmux list-panes -F '#{window_zoomed_flag}' | grep -F -q 1; then
-		ORIG_ZOOMED=true
-	fi
+  ORIG_PANE="$TMUX_PANE"
+  ORIG_ZOOMED=false
+  if tmux list-panes -F '#{window_zoomed_flag}' | grep -F -q 1; then
+    ORIG_ZOOMED=true
+  fi
 
-	## Update all the currently-open panes to the right colour palette.
-	PANES="$(tmux list-panes -a -F '#{pane_id}')"
-	for PANE in $PANES; do
-		tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
-	done
+  ## Update all the currently-open panes to the right colour palette.
+  PANES="$(tmux list-panes -a -F '#{pane_id}')"
+  for PANE in $PANES; do
+    tmux select-pane -t "$PANE" -P "$WINDOW_STYLE"
+  done
 
-	tmux select-pane -t "$ORIG_PANE"
-	$ORIG_ZOOMED && tmux resize-pane -Z
+  tmux select-pane -t "$ORIG_PANE"
+  $ORIG_ZOOMED && tmux resize-pane -Z
 
 }
 
 maclight() {
-	set_macos_palette light
+  set_macos_palette light
 }
 
 macdark() {
-	set_macos_palette dark
+  set_macos_palette dark
 }
 
 # light sets tmux to light mode.
 light() {
-	tmux setenv DARKMODE Light
-	maclight
-	MODE=Light
-	BG="#FFFFFF"
-	FG="#171717"
-	BORDER=green
-	HIGHLIGHT=magenta
-	STATUS_BG=green
-	STATUS_FG="#FFFFFF"
-	STATUS_SELECTED="#FFFFFF"
-	BACKGROUND=light
-	COLORSCHEME=github_light
-	#export LUALINE_THEME="ayu_light"
-	TERMINAL_BG="{65000, 65000, 65000}"
-	LSCOLORS="exfxcxdxbxegedabagacadah"
-	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;34"
-	set_terminal_palette
-	match-brightness >/dev/null 2>&1 || true
+  tmux setenv DARKMODE Light
+  maclight
+  MODE=Light
+  BG="#FFFFFF"
+  FG="#171717"
+  BORDER=green
+  HIGHLIGHT=magenta
+  STATUS_BG=green
+  STATUS_FG="#FFFFFF"
+  STATUS_SELECTED="fg=$FG,bold bg=#99FF33"
+  BACKGROUND=light
+  NVIM_COLORSCHEME=github_light
+  #export LUALINE_THEME="ayu_light"
+  #TERMINAL_BG="{65000, 65000, 65000}"
+  LSCOLORS="exfxcxdxbxegedabagacadah"
+  JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;34"
+  set_terminal_palette
+  match-brightness >/dev/null 2>&1 || true
 }
 
 # light sets tmux to dark mode.
 dark() {
-	tmux setenv DARKMODE Dark
-	local BLACK="#121212"
-	macdark
-	MODE=Dark
-	BG="$BLACK"
-	FG="#99FF33"
-	BORDER=green
-	HIGHLIGHT=magenta
-	STATUS_BG=green
-	STATUS_FG=black
-	STATUS_SELECTED="$BLACK"
-	BACKGROUND=dark
-	COLORSCHEME=github_dark_dimmed
-	#export LUALINE_THEME="dracula"
-	TERMINAL_BG="{0, 0, 0}"
-	LSCOLORS="Gxfxcxdxbxegedabagacad"
-	JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;36"
-	set_terminal_palette
-	match-brightness >/dev/null 2>&1 || true
+  tmux setenv DARKMODE Dark
+  local BLACK="#121212"
+  macdark
+  MODE=Dark
+  BG="$BLACK"
+  FG="#99FF33"
+  BORDER=green
+  HIGHLIGHT=magenta
+  STATUS_BG=green
+  STATUS_FG=black
+  STATUS_SELECTED="fg=$BLACK,bold bg=$FG"
+  BACKGROUND=dark
+  NVIM_COLORSCHEME=github_dark_dimmed
+  #export LUALINE_THEME="dracula"
+  #TERMINAL_BG="{0, 0, 0}"
+  LSCOLORS="Gxfxcxdxbxegedabagacad"
+  JQ_COLORS="0;90:0;37:0;37:0;37:0;32:1;37:1;37:1;36"
+  set_terminal_palette
+  match-brightness >/dev/null 2>&1 || true
 }
 
 tmux-getenv() {
-	tmux show-environment | grep -E "^$1=" | cut -d= -f2
+  tmux show-environment | grep -E "^$1=" | cut -d= -f2
 }
 
 match-system-darkmode || true
