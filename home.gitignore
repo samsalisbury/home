@@ -25,7 +25,10 @@ auth.*
 /.config/gcloud
 
 # Ignore local config.
-**.config.local
+*.conf.local
+
+# Ignore packer "config" (it's just caching and plugins, not config).
+/.config/packer
 
 # Ignore logs.
 **/logs/*.txt
@@ -67,4 +70,3 @@ auth.*
 
 !/Makefile
 .config/zed/prompts
-
