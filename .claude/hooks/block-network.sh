@@ -2,13 +2,31 @@
 # Blocks network-capable commands for read-only analysis agents.
 # Used as a PreToolUse(Bash) hook in agent frontmatter.
 # Exit 0 = no decision (normal permission flow). Exit 2 = block.
+#
+# Fails CLOSED: if the input cannot be parsed, the command is
+# blocked rather than allowed. A security control that silently
+# stops working is worse than one that is visibly broken.
 
-COMMAND=$(jq -r '.tool_input.command // empty')
+if ! command -v jq >/dev/null 2>&1; then
+  echo "block-network.sh: jq not found, so this agent's network" \
+    "restriction cannot be evaluated. Blocking. Install jq." >&2
+  exit 2
+fi
+
+if ! COMMAND=$(jq -r '.tool_input.command // empty' 2>/dev/null); then
+  echo "block-network.sh: could not parse hook input." \
+    "Blocking to fail closed." >&2
+  exit 2
+fi
+
+# An empty command can do nothing, so there is nothing to block.
 [ -z "$COMMAND" ] && exit 0
 
 # Any bare word matching a network-capable binary blocks the call.
-# Deliberately over-broad: these agents have no legitimate need for egress.
-BLOCKED='curl|wget|nc|ncat|netcat|telnet|ssh|scp|sftp|rsync|ftp|http|https|httpie|xh|aria2c|socat|openssl'
+# Deliberately over-broad: these agents have no legitimate need
+# for egress.
+BLOCKED='curl|wget|nc|ncat|netcat|telnet|ssh|scp|sftp|rsync|ftp'
+BLOCKED="$BLOCKED"'|http|https|httpie|xh|aria2c|socat|openssl'
 
 if printf '%s' "$COMMAND" | grep -Eqw "$BLOCKED"; then
   jq -n --arg cmd "$COMMAND" '{
@@ -22,8 +40,10 @@ if printf '%s' "$COMMAND" | grep -Eqw "$BLOCKED"; then
 fi
 
 # git subcommands that reach the network
-if printf '%s' "$COMMAND" | grep -Eq '\bgit\b.*\b(clone|fetch|pull|push|remote +(add|set-url)|ls-remote|submodule)\b'; then
-  echo "Network-capable git subcommand blocked for this agent (local analysis only)." >&2
+if printf '%s' "$COMMAND" |
+  grep -Eq '\bgit\b.*\b(clone|fetch|pull|push|remote +(add|set-url)|ls-remote|submodule)\b'; then
+  echo "Network-capable git subcommand blocked for this agent" \
+    "(local analysis only)." >&2
   exit 2
 fi
 

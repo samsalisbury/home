@@ -1,7 +1,7 @@
 {
   "env": {
-    "DISABLE_AUTOUPDATER": "1",
-    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1"
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1",
+    "DISABLE_AUTOUPDATER": "1"
   },
   "permissions": {
     "deny": [
@@ -24,10 +24,111 @@
       "Read(//**/*.p12)",
       "Read(//**/id_rsa)",
       "Read(//**/id_ed25519)"
+    ],
+    "blockReadsOutsideWorkingDirectories": true
+  },
+  "model": "opus[1m]",
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' notify"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' permreq"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $HOME/.claude/hooks/format-markdown.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' post"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' pre"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/lifecycle.js' end"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/lifecycle.js' start"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' stop"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PATH=\"/opt/homebrew/bin:/usr/local/bin${PATH:+:$PATH}\" node '/Users/sam/.claude/statusbar/update.js' prompt"
+          }
+        ]
+      }
     ]
+  },
+  "enabledPlugins": {
+    "plugin-dev@claude-plugins-official": true,
+    "mattpocock-skills@claude-plugins-official": true
   },
   "sandbox": {
     "enabled": true,
+    "allowUnsandboxedCommands": false,
     "network": {
       "allowedDomains": [
         "github.com",
@@ -119,22 +220,9 @@
       ]
     }
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash $HOME/.claude/hooks/format-markdown.sh"
-          }
-        ]
-      }
-    ]
-  },
-  "autoMemoryEnabled": false,
   "alwaysThinkingEnabled": true,
   "tui": "fullscreen",
+  "autoMemoryEnabled": false,
   "theme": "dark-daltonized",
   "editorMode": "vim",
   "agentPushNotifEnabled": true,

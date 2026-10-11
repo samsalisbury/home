@@ -16,7 +16,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "$HOME/.claude/hooks/block-network.sh"
+          command: "bash $HOME/.claude/hooks/block-network.sh"
 ---
 
 You reconstruct the history of code from the repository's own

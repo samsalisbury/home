@@ -17,7 +17,7 @@ hooks:
     - matcher: "Bash"
       hooks:
         - type: command
-          command: "$HOME/.claude/hooks/block-network.sh"
+          command: "bash $HOME/.claude/hooks/block-network.sh"
 ---
 
 You determine the shape of structured data and report it
