@@ -240,13 +240,13 @@ light() {
   tmux setenv DARKMODE Light
   maclight
   MODE=Light
-  BG="#FFFFFF"
+  BG="#ffffff"
   FG="#171717"
   BORDER=green
   HIGHLIGHT=magenta
   STATUS_BG=green
   STATUS_FG="#FFFFFF"
-  STATUS_SELECTED="fg=$FG,bold bg=#99FF33"
+  STATUS_SELECTED="fg=$FG,bold bg=#99ff33"
   BACKGROUND=light
   NVIM_COLORSCHEME=github_light
   #export LUALINE_THEME="ayu_light"
