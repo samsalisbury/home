@@ -24,6 +24,9 @@ auth.*
 /.config/containers
 /.config/gcloud
 
+# Ignore local config.
+**.config.local
+
 # Ignore logs.
 **/logs/*.txt
 **/logs/*.log
