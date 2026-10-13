@@ -38,6 +38,8 @@ auth.*
 # Ignore fabric config (lots of stuff there should be in cache I think).
 .config/fabric
 
+.config/1Password
+
 #/.config/gh
 #/.config/containers
 #/.config/github-copilot
