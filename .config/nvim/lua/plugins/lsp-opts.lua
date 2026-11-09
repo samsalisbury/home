@@ -8,6 +8,7 @@ return {
     servers = {
       -- Slow down copilot sugestions.
       copilot = {
+        enabled = false,
         flags = {
           debounce_text_changes = 1500,
         },
