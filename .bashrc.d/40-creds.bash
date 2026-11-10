@@ -19,15 +19,15 @@ creds() {
 	}
 
 	# GitHub - auto-load credentials if available.
-	gh() (
-		local BIN
-		BIN="$(which gh)" || {
-			log "ERROR: gh binary not found in path"
-			return 1
-		}
-		{ [[ -z "$GH_TOKEN" ]] && creds github; } || log "Using GH_TOKEN from environment"
-		"$BIN" "$@"
-	)
+	#gh() (
+	#	local BIN
+	#	BIN="$(which gh)" || {
+	#		log "ERROR: gh binary not found in path"
+	#		return 1
+	#	}
+	#	{ [[ -z "$GH_TOKEN" ]] && creds github; } || log "Using GH_TOKEN from environment"
+	#	"$BIN" "$@"
+	#)
 
 	# Git - auto-load github credentials if available.
 	git() {
