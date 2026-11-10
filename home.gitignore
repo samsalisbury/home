@@ -30,6 +30,10 @@ auth.*
 # Ignore packer "config" (it's just caching and plugins, not config).
 /.config/packer
 
+# Ignore OpenCode and OpenChamber config.
+/.config/opencode
+/.config/openchamber
+
 # Ignore logs.
 **/logs/*.txt
 **/logs/*.log
