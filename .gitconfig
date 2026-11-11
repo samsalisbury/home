@@ -50,7 +50,7 @@
 	gitLabAuthModes = browser
 [credential "https://dev.azure.com"]
 	useHttpPath = true
-[credential "https://github.com"]
-	username = samsalisbury
 [http]
 	cookiefile = /Users/sam/.gitcookies
+[include]
+  path = ~/.gitconfig.local
