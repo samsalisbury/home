@@ -35,6 +35,9 @@ auth.*
 /.config/opencode
 /.config/openchamber
 
+# Ignore age keys.
+/.config/sops/age
+
 # Ignore logs.
 **/logs/*.txt
 **/logs/*.log
